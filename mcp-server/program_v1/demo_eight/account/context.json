@@ -1,0 +1,8 @@
+{
+  "tenant_id": "fixture-tenant",
+  "company_id": "fixture-manufacturing",
+  "period": "2026-08",
+  "source_revision": "synthetic-eight-evidence-v1",
+  "run_id": "synthetic-eight-binding-v1",
+  "industry": "manufacturing"
+}

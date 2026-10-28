@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>v8 企业财务风险管控工作台</title>
+<style>
+:root{--paper:#f4f7fa;--ink:#18394e;--blue:#235ed4;--green:#1a7f5a;--amber:#a06800;--red:#b83242;
+--line:#dbe4ec;--muted:#6b8298;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.65 "Segoe UI","Microsoft YaHei",sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:24px 22px 60px}
+h1{font-size:25px;margin:0 0 4px;font-weight:650}
+h2{font-size:17px;margin:0 0 12px;font-weight:650}
+h3{font-size:14px;margin:0 0 8px;font-weight:650;color:#3d5568}
+.sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin-bottom:14px}
+.muted{color:var(--muted);font-size:12.5px}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:12px}
+.badge{display:inline-block;font-size:12px;padding:3px 9px;border-radius:3px;border:1px solid var(--line);background:#eef3f9;color:var(--muted)}
+.badge.ok{background:#e6f4ee;border-color:#b6ddc9;color:var(--green)}
+.badge.warn{background:#fdf3e0;border-color:#e8cd9a;color:var(--amber)}
+.badge.err{background:#fbeaec;border-color:#efc2c8;color:var(--red)}
+/* 顶部灯 */
+.light{display:flex;align-items:center;gap:16px;padding:18px 22px;border-radius:10px;border:1px solid var(--line);background:#fff;margin-bottom:14px}
+.dotlamp{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+ color:#fff;font-size:15px;font-weight:700;flex:0 0 auto}
+.lamp-绿灯{background:var(--green)}.lamp-黄灯{background:var(--amber)}.lamp-红灯{background:var(--red)}
+/* 配置 */
+.cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px 16px;align-items:end}
+.cfg label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+select,input{width:100%;padding:9px;border:1px solid #b5c6d6;background:#fff;color:var(--ink);border-radius:4px;font:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:5px;padding:9px 16px;font:inherit}
+button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+/* 数字卡 */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.k{background:#fbfcfe;border:1px solid var(--line);border-radius:7px;padding:12px 14px}
+.k .lab{font-size:12px;color:var(--muted);margin-bottom:5px}
+.k .val{font-size:20px;font-weight:650;font-variant-numeric:tabular-nums}
+.k.hl{background:#eaf2ff;border-color:#bcd4f5}
+.k.ok .val{color:var(--green)}.k.bad .val{color:var(--red)}
+/* 表 */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left}
+th{background:#f7fafd;font-weight:600;font-size:12.5px;color:#3d5568}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tfoot td{font-weight:650;background:#f7fafd}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+.notice{background:#fff5df;border-left:4px solid var(--amber);padding:12px 16px;color:#77500d;font-size:13px;margin-bottom:14px;border-radius:0 6px 6px 0}
+.notice.blue{background:#eaf2ff;border-left-color:var(--blue);color:#25406b}
+pre{background:#f8fafc;border:1px solid var(--line);border-radius:6px;padding:10px;overflow:auto;max-height:260px;font-size:12px;margin:8px 0 0}
+details summary{cursor:pointer;font-size:13px;color:var(--blue);padding:6px 0}
+.score{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.bar{height:8px;background:#e8eef5;border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:5px}
+.foot{text-align:center;color:var(--muted);font-size:12px;margin-top:24px}
+#msg{min-height:22px;font-size:13px;color:var(--muted)}
+</style></head><body>
+<div class="wrap">
+  <h1>v8 企业财务风险管控工作台</h1>
+  <div class="sub">三层风控模型（数据质量门禁 → 财务健康判别 → 异常复核）+ 相对指标阈值 + 常态化压力测试。以千问办公为核心骨架，本页展示同一计算内核的输入与判定结果。</div>
+
+  <div class="notice blue" id="declare"></div>
+
+  <div class="card">
+    <h2>配置面板（模块八）</h2>
+    <div class="cfg">
+      <div><label for="ind">行业（决定 K黄/K红 系数）</label><select id="ind"></select></div>
+      <div><label for="scn">受评对象（合成演示样本）</label><select id="scn"></select></div>
+      <div><label for="amt">本次申请金额（元，用于分级审批）</label><input id="amt" type="number" value="120000"></div>
+      <div><label for="npg">每组样本量（三层模型样本池）</label><select id="npg">
+        <option value="20">20（默认）</option><option value="35">35</option><option value="50">50</option></select></div>
+    </div>
+    <div class="acts">
+      <button id="run" class="primary">运行评估</button>
+      <button id="save">保存留痕（写隔离库）</button>
+      <button id="logs">查看留痕记录</button>
+    </div>
+    <div id="msg"></div>
+  </div>
+
+  <div class="light">
+    <div class="dotlamp" id="lamp">—</div>
+    <div style="flex:1">
+      <div style="font-size:19px;font-weight:650" id="lvl">等待评估</div>
+      <div class="muted" id="lvlwhy"></div>
+      <div class="muted" id="lvlformula" style="margin-top:4px"></div>
+    </div>
+    <div class="grid3" style="flex:0 0 auto;gap:10px">
+      <div class="k"><div class="lab">Q 数据质量</div><div class="val" id="q">—</div></div>
+      <div class="k"><div class="lab">D 判别得分</div><div class="val" id="d">—</div></div>
+      <div class="k"><div class="lab">P 舞弊概率</div><div class="val" id="p">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>现金流事实（v1.2 计算内核真实产出）</h2>
+    <div class="cards" id="cfCards"></div>
+    <p class="muted" id="cfNote" style="margin-top:10px"></p>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>相对指标阈值（v8 核心升级）</h2>
+      <table id="thrTbl"></table>
+      <p class="muted" id="thrNote" style="margin-top:8px"></p>
+    </div>
+    <div class="card">
+      <h2>缓冲判定</h2>
+      <table id="bufTbl"></table>
+      <p class="muted" id="bufNote" style="margin-top:8px"></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>三层风控模型</h2>
+    <div class="grid3">
+      <div><h3>第一层 · 数据质量门禁</h3>
+        <div class="score" id="qBig">—</div>
+        <p class="muted" id="qNote"></p>
+        <p class="muted" id="qSrc"></p></div>
+      <div><h3>第二层 · 改进 DEA-DA</h3>
+        <div class="score" id="dBig">—</div>
+        <p class="muted" id="dNote"></p>
+        <p class="muted" id="dSrc"></p></div>
+      <div><h3>第三层 · Benford-随机森林</h3>
+        <div class="score" id="pBig">—</div>
+        <p class="muted" id="pNote"></p>
+        <p class="muted" id="pSrc"></p></div>
+    </div>
+    <details style="margin-top:12px"><summary>第一层明细：15 个指标的 Benford χ² 与末位检验</summary>
+      <table><thead><tr><th>指标</th><th>名称</th><th>性质</th><th class="num">Benford χ²</th><th>偏离</th>
+        <th class="num">Myer 指数</th><th class="num">末位 χ²</th><th>堆积</th><th class="num">B</th><th class="num">M</th></tr></thead>
+        <tbody id="gateTbl"></tbody></table>
+      <p class="muted" id="gateNote"></p>
+    </details>
+    <details><summary>第二层明细：DEA-DA 投入产出权重（可解释性）</summary>
+      <div class="grid2">
+        <div><h3>投入指标权重</h3><table id="inTbl"></table></div>
+        <div><h3>产出指标权重</h3><table id="outTbl"></table></div>
+      </div>
+      <p class="muted" id="daNote"></p>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>常态化压力测试（每月 1 号自动跑）</h2>
+    <table><thead><tr><th>场景</th><th>说明</th><th class="num">缺口（元）</th><th class="num">冲击后缓冲</th>
+      <th class="num">缓冲倍数</th><th class="num">剩余天数</th><th>等级</th></tr></thead><tbody id="stressTbl"></tbody></table>
+    <p class="muted" id="stressNote" style="margin-top:8px"></p>
+    <details><summary>压力测试输入出处</summary><pre id="stressSrc"></pre></details>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><h2>分级审批（模块四）</h2><table id="apprTbl"></table>
+      <p class="muted" id="apprNote" style="margin-top:8px"></p></div>
+    <div class="card"><h2>三态跟踪与到账验证（模块五）</h2>
+      <table><thead><tr><th>对象</th><th class="num">未收（元）</th><th>到账状态</th><th>验证方式</th><th>状态</th></tr></thead>
+      <tbody id="trackTbl"></tbody></table>
+      <p class="muted" id="trackNote" style="margin-top:8px"></p></div>
+  </div>
+
+  <div class="card"><h2>例外审批回溯（每季度 1 号）</h2>
+    <table><thead><tr><th>部门</th><th class="num">审批次数</th><th class="num">例外次数</th><th class="num">例外率</th>
+      <th class="num">例外金额（元）</th><th>判定</th><th>动作</th></tr></thead><tbody id="excTbl"></tbody></table>
+    <p class="muted" id="excNote" style="margin-top:8px"></p></div>
+
+  <div class="card" id="logBox" hidden><h2>留痕记录（MySQL 隔离库）</h2>
+    <table><thead><tr><th>请求编号</th><th>行业</th><th>场景</th><th class="num">Q</th><th class="num">D</th>
+      <th class="num">P</th><th>等级</th><th class="num">缓冲倍数</th><th>时间</th></tr></thead><tbody id="logTbl"></tbody></table></div>
+
+  <div class="card"><details><summary>查看本次评估完整 JSON</summary><pre id="raw">尚未运行。</pre></details></div>
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const money=v=>{if(v===null||v===undefined)return '—';const n=Number(v);
+  const s=Math.abs(n).toFixed(2).split('.');return (n<0?'-':'')+s[0].replace(/\B(?=(\d{3})+(?!\d))/g,',')+'.'+s[1];};
+const num=v=>Number(v).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const f3=v=>Number(v).toFixed(3);
+let DATA=null, INDS=null, SCNS=null;
+const badge=(t,c)=>'<span class="badge '+(c||'')+'">'+t+'</span>';
+
+function row(t,v,cls){const tr=document.createElement('tr');tr.innerHTML='<td>'+t+'</td><td class="num '+(cls||'')+'">'+v+'</td>';return tr;}
+
+async function init(){
+  INDS=await (await fetch('api/v8/industries')).json();
+  SCNS=await (await fetch('api/v8/scenarios')).json();
+  $('ind').innerHTML=Object.keys(INDS.industries).map(k=>'<option value="'+k+'">'+k+'</option>').join('');
+  $('scn').innerHTML=SCNS.scenarios.map(s=>'<option value="'+s.key+'">'+s.name+'</option>').join('');
+  $('scn').value='edge';
+  await run();
+}
+
+async function run(){
+  $('msg').textContent='正在运行三层模型与压力测试…';
+  const p=new URLSearchParams({industry:$('ind').value,scenario:$('scn').value,
+    amount:$('amt').value,n:$('npg').value});
+  DATA=await (await fetch('api/v8/assess?'+p)).json();
+  if(DATA.error){$('msg').textContent='评估失败：'+DATA.error;return;}
+  $('msg').textContent='评估完成。';
+  render();
+}
+
+function render(){
+  const d=DATA;
+  $('raw').textContent=JSON.stringify(d,null,2);
+  $('declare').innerHTML='<b>数据来源声明：</b>'+d['声明']['现金流来源']+
+    ' ｜ 财务比率：'+d['声明']['财务比率来源']+'。<br>'+d['声明']['不启用声明']+'。';
+
+  // 灯
+  const fin=d['最终等级'], lv=fin?fin['等级']:d['融合判定']['等级'];
+  $('lamp').className='dotlamp lamp-'+lv; $('lamp').textContent=lv;
+  $('lvl').textContent='最终预警等级 '+lv+'　（受评：'+d['受评对象']+'）';
+  $('lvlwhy').textContent='三层融合 FUSE = '+d['融合判定']['等级']+
+    '；现金流缓冲判定 = '+(d['缓冲判定']?d['缓冲判定']['等级']:'—')+
+    '；取较严格者 → '+lv+'（取自：'+(fin?fin['取严来源']:'—')+'）';
+  $('lvlformula').textContent='判定公式：'+d['融合判定']['公式']+'　｜　'+
+    (fin?fin['口径']:'');
+  $('q').textContent=f3(d['第一层']['Q']); $('d').textContent=f3(d['第二层']['D']); $('p').textContent=f3(d['第三层']['P']);
+
+  // 现金流
+  const cf=d['现金流事实'];
+  const cc=$('cfCards'); cc.innerHTML='';
+  if(cf.ok){
+    [['期初现金',cf['期初现金']],['本期净额',cf['本期净额']],['期末现金',cf['期末现金'],'hl'],
+     ['月均经营性流出 M',cf['月均经营性流出M'],'hl'],
+     ['经营净额',cf['经营性净额']],['投资净额',cf['投资性净额']],['筹资净额',cf['筹资性净额']]
+    ].forEach(([l,v,c])=>{const e=document.createElement('div');e.className='k '+(c||'');
+      e.innerHTML='<div class="lab">'+l+'（元）</div><div class="val">'+money(v)+'</div>';cc.appendChild(e);});
+    $('cfNote').textContent='期间 '+cf['期间']+'｜对账状态 '+cf['对账']+'｜run_id '+cf['run_id']+'。以上均由 v1.2 内核真实计算，非前端常量。';
+  } else {
+    cc.innerHTML='<div class="k bad"><div class="lab">现金流内核不可用</div><div class="val">—</div></div>';
+    $('cfNote').textContent='错误：'+cf.error;
+  }
+
+  // 阈值
+  const t=d['相对阈值'], tt=$('thrTbl'); tt.innerHTML='';
+  if(t){tt.append(row('月均经营性流出 M',money(t['M_月均经营性流出'])),
+    row('K黄（行业系数）',t['K黄']),row('K红（行业系数）',t['K红']),
+    row('黄灯线 = M × K黄',money(t['黄灯线'])),row('红灯线 = M × K红',money(t['红灯线'])));
+    $('thrNote').textContent=t['口径']+'。换行业即换 K，预警线随企业规模自动缩放。';}
+  const bj=d['缓冲判定'], bt=$('bufTbl'); bt.innerHTML='';
+  if(bj){bt.append(row('现金缓冲',money(bj['缓冲'])),row('缓冲倍数 = 缓冲 ÷ M',f3(bj['缓冲倍数'])),
+    row('判定等级',bj['等级']));$('bufNote').textContent=bj['判定依据'];}
+
+  // 三层
+  const g=d['第一层'], da=d['第二层'], rf=d['第三层'];
+  $('qBig').textContent=f3(g['Q']);
+  $('qNote').textContent='命中 Benford 偏离 '+g['命中Benford数']+' 项、末位堆积 '+g['命中Myer数']+
+    ' 项（共 '+g['指标数']+' 个指标）。'+g['口径'];
+  $('qSrc').textContent='临界：Benford χ² > '+g['临界']['Benford_chi2']+'、末位 χ² > '+
+    g['临界']['末位均匀分布_chi2']+'。'+g['判据说明']+'。来源：'+g['来源'];
+  $('dBig').textContent=f3(da['D']);
+  $('dNote').textContent='判别得分 '+f3(da['判别得分'])+'，临界值 '+f3(da['临界值'])+
+    ' → '+(da['判为风险']?'判为财务风险':'判为健康')+'。样本：健康 '+da['样本']['健康组']+
+    ' 家 / 风险 '+da['样本']['风险组']+' 家。'+da['口径'];
+  $('dSrc').textContent='求解：'+da['求解']+'（降级='+da['降级']+'）。来源：'+da['来源'];
+  $('pBig').textContent=f3(rf['P']);
+  $('pNote').textContent='随机森林 '+rf['树数']+' 棵，特征 '+rf['特征维度']+' 维（'+rf['特征构成']+
+    '）。'+rf['口径'];
+  $('pSrc').textContent='参数：n_estimators='+rf['参数']['n_estimators']+'，max_depth='+
+    rf['参数']['max_depth']+'，bootstrap=是。来源：'+rf['来源'];
+
+  const gt=$('gateTbl'); gt.innerHTML='';
+  Object.entries(g['明细']).forEach(([k,v])=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td class="mono">'+k+'</td><td>'+v['名称']+'</td><td>'+(v['性质']==='positive'?'正指标':'逆指标')+
+      '</td><td class="num">'+f3(v['benford_chi2'])+'</td><td>'+(v['benford_偏离']?badge('偏离','err'):badge('合规','ok'))+
+      '</td><td class="num">'+f3(v['myer指数'])+'</td><td class="num">'+f3(v['末位卡方'])+
+      '</td><td>'+(v['myer_堆积']?badge('堆积','warn'):badge('正常','ok'))+
+      '</td><td class="num">'+v['B因子']+'</td><td class="num">'+v['M因子']+'</td>';
+    gt.appendChild(tr);});
+  $('gateNote').textContent='χ² 临界 '+g['临界']['Benford_chi2']+'（10% 显著性），末位 χ² 临界 '+
+    g['临界']['末位均匀分布_chi2']+'（df=9，5%）。'+g['判据说明'];
+
+  const wt=da['权重'];
+  const it=$('inTbl'), ot=$('outTbl'); it.innerHTML=''; ot.innerHTML='';
+  da['投入指标'].forEach(k=>{const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+k+'（'+({X9:'总资产增长率',X7:'利润总额增长率',AR_DAYS:'应收周转天数(取负)',X13:'资产负债率(取负)'}[k]||k)+'）</td><td class="num">'+f3(wt[k])+'</td>';it.appendChild(tr);});
+  da['产出指标'].forEach(k=>{const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+k+'（'+({X1:'净资产收益率',X2:'资产报酬率',X3:'营业利润率',X6:'利息保障倍数'}[k]||k)+'）</td><td class="num">'+f3(wt[k])+'</td>';ot.appendChild(tr);});
+  $('daNote').textContent='投入项中「越大越差」者（应收周转天数、资产负债率）已按 v8 文档做前处理取负，'+
+    '使全部投入满足「越大越好」；权重由线性规划求解，稀疏且可解释。'+da['口径'];
+
+  // 压力测试
+  const st=$('stressTbl'); st.innerHTML='';
+  d['压力测试']['场景结果'].forEach(s=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+s['场景']+'</td><td class="muted">'+s['说明']+'</td><td class="num">'+money(s['缺口'])+
+      '</td><td class="num">'+money(s['冲击后缓冲'])+'</td><td class="num"><b>'+f3(s['缓冲倍数'])+
+      '</b></td><td class="num">'+s['缓冲剩余天数']+'</td><td>'+
+      (s['等级']==='红灯'?badge('红灯','err'):(s['等级']==='黄灯'?badge('黄灯','warn'):badge('绿灯','ok')))+'</td>';
+    st.appendChild(tr);});
+  const w=d['压力测试']['最坏情况'];
+  $('stressNote').textContent='最坏情况：'+w['场景']+'（缓冲倍数 '+f3(w['缓冲倍数'])+'，'+
+    w['等级']+'）'+(d['压力测试']['触发紧急任务']?' → 按 v8 设计自动触发红色预警与紧急会议任务。':' → 未触发紧急任务。')+
+    '　'+d['压力测试']['口径'];
+  $('stressSrc').textContent=JSON.stringify(d['压力测试']['输入出处'],null,2);
+
+  // 审批
+  const a=d['分级审批'], at=$('apprTbl'); at.innerHTML='';
+  at.append(row('本次申请金额',money(a['金额'])),row('月均业务规模',money(a['月均业务规模'])),
+    row('金额倍数',f3(a['金额倍数'])),row('分界线1',a['分界线']['线1']),row('分界线2',a['分界线']['线2']),
+    row('审批人',a['审批人']),row('要求',a['要求']));
+  $('apprNote').textContent=a['口径']+'。分界线随企业规模自适应，不用绝对金额。';
+
+  // 三态
+  const tr=$('trackTbl'); tr.innerHTML='';
+  d['三态跟踪']['记录'].forEach(r=>{const e=document.createElement('tr');
+    e.innerHTML='<td>'+r['对象']+'</td><td class="num">'+money(r['未收'])+'</td><td>'+r['到账状态']+
+      '</td><td class="muted">'+r['验证方式']+'</td><td>'+
+      (r['状态']==='已化解'?badge('已化解','ok'):badge('观察中','warn'))+'</td>';tr.appendChild(e);});
+  $('trackNote').textContent='规则：'+d['三态跟踪']['规则']+'。';
+
+  // 例外
+  const et=$('excTbl'); et.innerHTML='';
+  d['例外回溯']['部门统计'].forEach(x=>{const e=document.createElement('tr');
+    const bad=x['判定'].indexOf('异常')>=0;
+    e.innerHTML='<td>'+x['部门']+'</td><td class="num">'+x['审批次数']+'</td><td class="num">'+x['例外次数']+
+      '</td><td class="num">'+f3(x['例外率'])+'</td><td class="num">'+money(x['例外金额'])+'</td><td>'+
+      (bad?badge(x['判定'],'err'):badge(x['判定'],'ok'))+'</td><td>'+x['动作']+'</td>';et.appendChild(e);});
+  $('excNote').textContent='判定规则：'+d['例外回溯']['判定规则'].join('；')+'。'+d['例外回溯']['说明'];
+
+  $('foot').textContent='行业参数模板 '+Object.keys(INDS.industries).join(' / ')+
+    '，阈值来源：'+INDS.source.book+'（'+INDS.source.year+'）｜'+INDS.source.note;
+}
+
+$('run').onclick=run;
+$('save').onclick=async()=>{
+  $('msg').textContent='正在保存留痕…';
+  const r=await (await fetch('api/v8/save',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({industry:$('ind').value,scenario:$('scn').value,amount:$('amt').value})})).json();
+  $('msg').textContent=r.error?('保存失败：'+r.error):('已提交留痕，请求编号 '+r.request_id+'，等级 '+r.level);
+  if(!r.error){await showLogs();}
+};
+$('logs').onclick=showLogs;
+async function showLogs(){
+  const r=await (await fetch('api/v8/logs')).json();
+  $('logBox').hidden=false;
+  const t=$('logTbl'); t.innerHTML='';
+  if(r.error){t.innerHTML='<tr><td colspan="9" class="muted">'+r.error+'</td></tr>';return;}
+  (r.logs||[]).forEach(l=>{const e=document.createElement('tr');
+    e.innerHTML='<td class="mono">'+l.request_id+'</td><td>'+l.industry+'</td><td>'+l.scenario+
+      '</td><td class="num">'+f3(l.Q)+'</td><td class="num">'+f3(l.D)+'</td><td class="num">'+f3(l.P)+
+      '</td><td>'+(l['等级']==='红灯'?badge(l['等级'],'err'):(l['等级']==='黄灯'?badge(l['等级'],'warn'):badge(l['等级'],'ok')))+
+      '</td><td class="num">'+f3(l['缓冲倍数'])+'</td><td class="muted">'+l['时间']+'</td>';t.appendChild(e);});
+}
+init();
+</script></body></html>

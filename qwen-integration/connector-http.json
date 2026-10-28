@@ -1,0 +1,9 @@
+{
+  "_comment": "远程 HTTP 接法。服务器 workbench.example.com 已实测：握手成功、返回 manufacturing-workbench-program-v1 v1.30.0。千问连接器能否直接填 URL 仍待其侧验证；若不支持，改用 connector-stdio.json 在本机拉起。",
+  "mcpServers": {
+    "制造业现金流_程序计算_v1": {
+      "type": "http",
+      "url": "https://workbench.example.com/mcp"
+    }
+  }
+}

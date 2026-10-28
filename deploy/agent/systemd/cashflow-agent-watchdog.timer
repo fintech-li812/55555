@@ -1,0 +1,12 @@
+[Unit]
+Description=每 5 分钟检查一次 agent 健康状态
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+AccuracySec=30s
+Unit=cashflow-agent-watchdog.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target

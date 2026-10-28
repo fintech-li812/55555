@@ -1,0 +1,26 @@
+[Unit]
+Description=Cashflow Risk Workbench - rolling forecast run
+Documentation=file:///opt/cashflow/rollcast/README.md
+After=network-online.target mysql.service
+Wants=network-online.target mysql.service
+
+[Service]
+Type=oneshot
+User=cfrun
+Group=cfrun
+WorkingDirectory=/opt/cashflow
+EnvironmentFile=/opt/cashflow/deploy/.env
+Environment=PYTHONIOENCODING=utf-8
+Environment=OMP_NUM_THREADS=1
+Environment=OPENBLAS_NUM_THREADS=1
+Environment=MKL_NUM_THREADS=1
+# The wrapper derives a timestamped output name and prunes old runs; keeping
+# that in one place avoids a second source of truth for retention.
+ExecStart=/opt/cashflow/rollcast/deploy/run_weekly.sh
+TimeoutStartSec=900
+# Deliberately no Restart: a failed forecast must stay visible in
+# `systemctl --failed` instead of being retried into a green state.
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

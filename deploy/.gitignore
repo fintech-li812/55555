@@ -1,0 +1,16 @@
+# 第二道防线：即使根目录 .gitignore 被绕过，这里仍能拦住凭据。
+# 公开仓库，以下文件绝不可提交。
+
+.env
+*.env
+!.env.template
+
+# 服务器凭据（临时缓存，勿提交）
+.sshpw
+
+# MySQL 数据目录（约 205MB，含真实业务数据与 InnoDB 表空间）
+.mysqldata/
+
+# TLS 私钥
+*.pem
+*.key

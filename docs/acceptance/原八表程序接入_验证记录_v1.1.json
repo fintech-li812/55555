@@ -1,0 +1,20 @@
+{
+  "version": "workbench-program.v1.1",
+  "tests_passed": 72,
+  "original_tests_included": 37,
+  "counts_not_added": true,
+  "mcp_tool_count": 9,
+  "executed_source_checks": 11,
+  "source_sheets": 8,
+  "source_findings": 5,
+  "normal_partial_receipts": 3,
+  "mapping_preview_records": 46,
+  "qa_rows_before": 21,
+  "qa_rows_after": 21,
+  "database_writes_performed": false,
+  "full_data_gate_executed": false,
+  "original_full_cashflow_calculable": false,
+  "qwen_new_tool_refreshed": false,
+  "browser_audit_button_verified": true,
+  "browser_normal_case_regression_verified": true
+}

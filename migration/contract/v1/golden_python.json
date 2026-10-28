@@ -1,0 +1,265 @@
+{
+  "algorithm_sha256_per_file": {
+    "account_binding.py": "4341c7d591751111226f13bf068e4c2216fd46f820de77a05b3a8eb9b3188034",
+    "cash_selection.py": "02d84a600a1756111ec6d71480e462b38874303a3c03aa46b2fe4f0aaf3c313e",
+    "eight_sheet_engine.py": "1bf80256c3334d4c3e03ce3155eac901c4f5dc12fc4ab3cd128c181f4c3121ec",
+    "program_engine.py": "17d3cfec5bc4051c4448010f644833eb93c033c519e86028d05c02daac1d266b",
+    "source_audit.py": "48a29a9799cfc4497ed3f4d0d9dbcbe54505652b503750488347305cd73f64a6"
+  },
+  "captured_at_utc": "2026-10-27T03:50:40.283888+00:00",
+  "note": "These are the Reference answers. The Node port must match them field by field.",
+  "producer": "python reference engine (read-only dump)",
+  "schema_version": "golden answers v1",
+  "sources": {
+    "manufacturing_sample_v1": {
+      "error_type": "ValueError",
+      "message": "source_id_not_registered_for_program_calculation",
+      "status": "error"
+    },
+    "program_demo_v1": {
+      "can_save_source_result": true,
+      "database_written": false,
+      "fixture": true,
+      "platform_native_verified": false,
+      "result": {
+        "amounts": {
+          "actual_closing": "140000.00",
+          "closing": "140000.00",
+          "difference": "0.00",
+          "inflow": "130000.00",
+          "net": "40000.00",
+          "opening": "100000.00",
+          "outflow": "90000.00"
+        },
+        "calculation_version": "manufacturing-program-arithmetic.v1",
+        "company_id": "fixture-manufacturing",
+        "coverage": "full_cashflow",
+        "data_type": "SYNTHETIC",
+        "evidence": {
+          "account_scope": "synthetic-bank-001",
+          "closing_source": "synthetic-independent-closing-statement-20260831",
+          "opening_source": "synthetic-opening-statement-20260731",
+          "source_assurance": "synthetic_declared_not_audited"
+        },
+        "execution": {
+          "algorithm_sha256": "17d3cfec5bc4051c4448010f644833eb93c033c519e86028d05c02daac1d266b",
+          "engine": "Python Decimal",
+          "input_sha256": "00613baa679620b938c009c20bb56f83baad14ef28bf5124b4db31dd5fdd9691",
+          "native_qwen_sheet": false,
+          "source_modified": false
+        },
+        "industry": "manufacturing",
+        "issues": [],
+        "origin": "program_calculation",
+        "period": "2026-08",
+        "reconciliation_state": "matched",
+        "risk_flags": [],
+        "run_id": "calc-59c95872d9bdca4dba547fd42d323f42",
+        "schema_version": "mfg-agent-result.v1",
+        "source": {
+          "range": "A1:C22",
+          "sheet": "输入",
+          "snapshot_ref": "00613baa679620b938c009c20bb56f83baad14ef28bf5124b4db31dd5fdd9691",
+          "workbook_ref": "program_demo_v1"
+        },
+        "source_revision": "program-00613baa679620b938c0",
+        "status": "success",
+        "tenant_id": "fixture-tenant",
+        "unit": "CNY"
+      },
+      "source_file_sha256": "00613baa679620b938c009c20bb56f83baad14ef28bf5124b4db31dd5fdd9691",
+      "status": "calculated"
+    },
+    "program_difference_v1": {
+      "can_save_source_result": false,
+      "database_written": false,
+      "fixture": true,
+      "platform_native_verified": false,
+      "result": {
+        "amounts": {
+          "actual_closing": "139000.00",
+          "closing": "140000.00",
+          "difference": "-1000.00",
+          "inflow": "130000.00",
+          "net": "40000.00",
+          "opening": "100000.00",
+          "outflow": "90000.00"
+        },
+        "calculation_version": "manufacturing-program-arithmetic.v1",
+        "company_id": "fixture-manufacturing",
+        "coverage": "full_cashflow",
+        "data_type": "SYNTHETIC",
+        "evidence": {
+          "account_scope": "synthetic-bank-001",
+          "closing_source": "synthetic-independent-closing-statement-20260831",
+          "opening_source": "synthetic-opening-statement-20260731",
+          "source_assurance": "synthetic_declared_not_audited"
+        },
+        "execution": {
+          "algorithm_sha256": "17d3cfec5bc4051c4448010f644833eb93c033c519e86028d05c02daac1d266b",
+          "engine": "Python Decimal",
+          "input_sha256": "970b094f1e0e2c8b0bed860893dde9dde91c17b564519390100e44984c92eed6",
+          "native_qwen_sheet": false,
+          "source_modified": false
+        },
+        "industry": "manufacturing",
+        "issues": [],
+        "origin": "program_calculation",
+        "period": "2026-08",
+        "reconciliation_state": "difference_pending_review",
+        "risk_flags": [
+          "independent_balance_difference"
+        ],
+        "run_id": "calc-f33e856094db9c208ab6a5d001fd6acf",
+        "schema_version": "mfg-agent-result.v1",
+        "source": {
+          "range": "A1:C22",
+          "sheet": "输入",
+          "snapshot_ref": "970b094f1e0e2c8b0bed860893dde9dde91c17b564519390100e44984c92eed6",
+          "workbook_ref": "program_difference_v1"
+        },
+        "source_revision": "program-970b094f1e0e2c8b0bed",
+        "status": "success",
+        "tenant_id": "fixture-tenant",
+        "unit": "CNY"
+      },
+      "source_file_sha256": "970b094f1e0e2c8b0bed860893dde9dde91c17b564519390100e44984c92eed6",
+      "status": "calculated"
+    },
+    "synthetic_eight_sheet_v1": {
+      "can_save_source_result": true,
+      "checked_sheets": [
+        "企业基本信息",
+        "现金流水",
+        "应收账款",
+        "筹资信息",
+        "投资现金流",
+        "银行流水",
+        "行业参数",
+        "数据字典"
+      ],
+      "database_written": false,
+      "executed_checks": [
+        "eight_sheet_contract",
+        "explicit_units",
+        "unique_bank_transactions",
+        "cash_directions_and_categories",
+        "explicit_settlement_dates",
+        "business_bank_exact_links",
+        "noncash_financing_exclusion",
+        "invoice_bank_collected_comparison",
+        "monthly_operating_bank_reconciliation",
+        "independent_account_balance_binding",
+        "primary_cash_selection_and_no_double_count",
+        "all_three_cashflow_group_arithmetic",
+        "independent_closing_reconciliation"
+      ],
+      "fixture": true,
+      "observations": [
+        {
+          "code": "noncash_financing_excluded",
+          "detail": "银行授信额度不重复计入现金。",
+          "source": "筹资信息!A3:I3"
+        },
+        {
+          "code": "noncash_financing_excluded",
+          "detail": "贷款余额不重复计入现金。",
+          "source": "筹资信息!A4:I4"
+        },
+        {
+          "code": "normal_partial_receipt",
+          "detail": "部分到账正常；按银行实际收款计现，应收总额不叠加。",
+          "source": "应收账款!E3:F3"
+        }
+      ],
+      "platform_native_verified": false,
+      "result": {
+        "amounts": {
+          "actual_closing": "177000.00",
+          "closing": "177000.00",
+          "difference": "0.00",
+          "inflow": "185000.00",
+          "net": "77000.00",
+          "opening": "100000.00",
+          "outflow": "108000.00"
+        },
+        "calculation_version": "manufacturing-eight-sheet-program.v1",
+        "cashflow_groups": {
+          "financing": {
+            "inflow": "50000.00",
+            "net": "32000.00",
+            "outflow": "18000.00"
+          },
+          "investing": {
+            "inflow": "5000.00",
+            "net": "-15000.00",
+            "outflow": "20000.00"
+          },
+          "operating": {
+            "inflow": "130000.00",
+            "net": "60000.00",
+            "outflow": "70000.00"
+          }
+        },
+        "company_id": "fixture-manufacturing",
+        "coverage": "full_cashflow",
+        "data_type": "SYNTHETIC",
+        "evidence": {
+          "account_scope": "demo-bank-001",
+          "closing_source": "synthetic-independent-closing-statement",
+          "opening_source": "synthetic-independent-opening-statement",
+          "selected_actual_record_count": 6,
+          "selection_counts": {
+            "approved_duplicate_records": 0,
+            "corroborating_only_records": 4,
+            "eliminated_transfer_records": 0,
+            "input_records": 13,
+            "noncash_records": 3,
+            "primary_actual_records": 6,
+            "selected_actual_records": 6
+          },
+          "source_assurance": "SYNTHETIC_DECLARED_NOT_REAL_BANK_EVIDENCE"
+        },
+        "execution": {
+          "account_binding_sha256": "bde53dc129a7709bc5a8cf7d5be97a8f3ceb89433fddc9bbcbfd3f3c45f8bebc",
+          "algorithm_sha256": "4a3ac7b60dd3bc234240ad73da3cab2b7f60e24f46f2109f454aaebadef0cb2f",
+          "cash_selection_sha256": "fd7e6e2caa62e981c964cd6004db0e5acd799025e70711863d6bdbef9628e721",
+          "engine": "Python Decimal",
+          "input_context": {
+            "company_id": "fixture-manufacturing",
+            "period": "2026-08",
+            "run_id": "synthetic-eight-binding-v1",
+            "source_revision": "synthetic-eight-evidence-v1",
+            "tenant_id": "fixture-tenant"
+          },
+          "input_sha256": "87de72c310f2dcb6a2c4e055ddefc4a591b0ae0373be9e917251912499748cd9",
+          "native_qwen_sheet": false,
+          "source_modified": false,
+          "workbook_sha256": "05b643cfa66c07fd51533e5ab7581e250ff480f26f6db6ab05963715d769ad4d"
+        },
+        "industry": "manufacturing",
+        "issues": [],
+        "origin": "program_calculation",
+        "period": "2026-08",
+        "reconciliation_state": "matched",
+        "risk_flags": [],
+        "run_id": "eight-bf52800eefa0d6b89fea0e1449cb9692",
+        "schema_version": "mfg-agent-result.v1",
+        "source": {
+          "range": "银行流水!A3:L8",
+          "sheet": "八表及独立余额证据",
+          "snapshot_ref": "87de72c310f2dcb6a2c4e055ddefc4a591b0ae0373be9e917251912499748cd9",
+          "workbook_ref": "synthetic_eight_sheet_v1"
+        },
+        "source_revision": "eight-87de72c310f2dcb6a2c4",
+        "status": "success",
+        "tenant_id": "fixture-tenant",
+        "unit": "CNY"
+      },
+      "scope": "registered_complete_synthetic_eight_sheet_demo_not_all_historical_gate_rules",
+      "source_file_sha256": "05b643cfa66c07fd51533e5ab7581e250ff480f26f6db6ab05963715d769ad4d",
+      "source_modified": false,
+      "status": "calculated"
+    }
+  }
+}

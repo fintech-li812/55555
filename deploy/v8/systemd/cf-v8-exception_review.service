@@ -1,0 +1,22 @@
+[Unit]
+Description=Cashflow Risk Workbench - V8 job: 例外审批回溯（季度）
+Documentation=file:///opt/cashflow/deploy/v8/README-jobs.md
+After=network-online.target mysql.service
+Wants=network-online.target mysql.service
+
+[Service]
+Type=oneshot
+User=cfrun
+Group=cfrun
+WorkingDirectory=/opt/cashflow
+EnvironmentFile=/opt/cashflow/deploy/.env
+Environment=PYTHONIOENCODING=utf-8
+# 单线程：三层模型是纯 Python 实现，多线程不会更快，反而会扰动随机森林的可复现性
+Environment=OMP_NUM_THREADS=1
+ExecStart=/opt/cashflow/venv/bin/python /opt/cashflow/deploy/v8/run_v8_job.py exception_review
+TimeoutStartSec=900
+# 故意不设 Restart：失败任务必须留在 systemctl --failed 里可见，
+# 而不是被重启成绿色。未实现的任务返回 4，同样会显示为 failed。
+Restart=no
+
+# 无 [Install] 段：本服务只由同名 .timer 触发，开机不应自动运行。

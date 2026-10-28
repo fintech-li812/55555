@@ -1,0 +1,24 @@
+[Unit]
+Description=Cashflow Risk Workbench - v8 风控工作台 HTTP 服务
+Documentation=file:///opt/cashflow/DEPLOY.md
+After=network-online.target mysql.service
+Wants=network-online.target mysql.service
+
+[Service]
+Type=simple
+User=cfrun
+Group=cfrun
+WorkingDirectory=/opt/cashflow/mcp-server/program_v1/src
+EnvironmentFile=/opt/cashflow/deploy/.env
+Environment=PYTHONIOENCODING=utf-8
+Environment=CF_V8_PORT=8010
+ExecStart=/opt/cashflow/venv/bin/python -B -u /opt/cashflow/mcp-server/program_v1/src/v8_server.py 
+Restart=always
+RestartSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

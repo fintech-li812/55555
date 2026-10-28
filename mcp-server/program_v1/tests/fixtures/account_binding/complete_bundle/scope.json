@@ -1,0 +1,28 @@
+{
+  "schema_version": "mfg-account-scope.v1",
+  "tenant_id": "fixture-tenant",
+  "company_id": "fixture-manufacturing",
+  "period": "2026-08",
+  "source_revision": "fixture-source-v1",
+  "run_id": "fixture-run-202608",
+  "origin": "offline_fixture",
+  "unit": "CNY",
+  "scope_confirmed": true,
+  "reporting_entity_id": "fixture-entity",
+  "opening_as_of": "2026-07-31",
+  "closing_as_of": "2026-08-31",
+  "accounts": [
+    {
+      "account_id": "fixture-account-A",
+      "reporting_entity_id": "fixture-entity",
+      "currency": "CNY",
+      "included": true
+    },
+    {
+      "account_id": "fixture-account-B",
+      "reporting_entity_id": "fixture-entity",
+      "currency": "CNY",
+      "included": true
+    }
+  ]
+}

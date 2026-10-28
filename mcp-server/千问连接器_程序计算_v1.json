@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "制造业现金流_程序计算_v1": {
+      "command": "D:/AI_Command_Workspace/runtime/cashflow_v1/Scripts/python.exe",
+      "args": [
+        "-B",
+        "-u",
+        "D:/CashflowRiskWorkbench/mcp-server/app.py",
+        "stdio"
+      ]
+    }
+  }
+}

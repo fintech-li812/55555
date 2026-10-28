@@ -1,0 +1,21 @@
+# 统一换行符：仓库内一律存 LF，检出时按平台自动转换。
+# 本项目同时在 Windows 开发机与 Linux 服务器上运行，不统一会导致
+# shell 脚本（.sh）在服务器上因 CRLF 报 "bad interpreter"。
+* text=auto
+
+# 二进制文件，禁止做任何转换或 diff
+*.xlsx binary
+*.xls  binary
+*.zip  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+
+# 服务器上必须保持 LF，否则 systemd 单元与脚本无法加载
+*.sh      text eol=lf
+*.service text eol=lf
+*.timer   text eol=lf
+*.conf    text eol=lf

@@ -1,0 +1,31 @@
+# 一键起编排网关 + MCP 工具层（MySQL 用你自有实例，不随容器起）
+# 用法：docker compose -f deploy/v10/docker-compose.yml up -d
+services:
+  cashflow-risk-v10:
+    build:
+      context: ../..
+      dockerfile: deploy/v10/Dockerfile
+    container_name: cashflow-risk-v10
+    restart: always
+    env_file:
+      - ../../deploy/.env          # 【待替换项】真实口令只放这里，服务器本地，不进镜像/仓库
+    environment:
+      CF_GATEWAY_PORT: "8100"
+      CF_MCP_PORT: "8090"
+      MCP_TRANSPORT: http
+      MCP_HTTP_URL: http://127.0.0.1:8090/mcp
+      TZ: Asia/Shanghai
+    ports:
+      - "127.0.0.1:8100:8100"      # 只映射回环，公网由 Nginx 反代
+      - "127.0.0.1:8090:8090"
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8100/api/health',timeout=5)"]
+      interval: 30s
+      timeout: 8s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

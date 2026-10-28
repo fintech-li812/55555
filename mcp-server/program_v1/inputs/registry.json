@@ -1,0 +1,10 @@
+{
+  "program_demo_v1": {
+    "sha256": "00613baa679620b938c009c20bb56f83baad14ef28bf5124b4db31dd5fdd9691",
+    "data_type": "SYNTHETIC"
+  },
+  "program_difference_v1": {
+    "sha256": "970b094f1e0e2c8b0bed860893dde9dde91c17b564519390100e44984c92eed6",
+    "data_type": "SYNTHETIC"
+  }
+}

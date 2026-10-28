@@ -1,0 +1,281 @@
+{
+  "version": "workbench-program.v1.1",
+  "scope": "original-source audit and evidence binding integration; not full source business validation",
+  "files": [
+    {
+      "path": "agent-prompts/skills/mfg-program-workbench/SKILL.md",
+      "sha256": "3c9bff8c9478107205d2bbd1f47b7e66746317e9ff03d69a7b9a6798aa1ee7da",
+      "size": 4448
+    },
+    {
+      "path": "agent-prompts/制造业现金流_程序计算版主提示词.md",
+      "sha256": "04ad40ea3e1768aa0adffd464fae431838517cfab66f8a5a7123aa60d49651d9",
+      "size": 718
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "a0a6b9088d886df9abf9ac8ed7e64e9567f5183251475a5ebf47659b554d9acf",
+      "size": 1455
+    },
+    {
+      "path": "data/制造业_样例数据.xlsx",
+      "sha256": "7e32b1eca8cfe892bd0ee96dfe257b03965018e607fc0e8cbaface33c13d0a3b",
+      "size": 20259
+    },
+    {
+      "path": "docs/原八表程序接入_验证记录_v1.1.json",
+      "sha256": "c9a758608a89fc17edfebdadd922153708356b9cab585b7155f1a3b3cc583a35",
+      "size": 604
+    },
+    {
+      "path": "docs/原八表程序接入交付报告_v1.1_20261026.md",
+      "sha256": "be13f491494696c15939760655f8e4c7873d13e9971a5d35ff4a752f65c3219f",
+      "size": 3611
+    },
+    {
+      "path": "docs/原样例待补资料_按一个月份接入.md",
+      "sha256": "cc4dd9461778d5ba8b5561f8c3db5bc31f21ccce372b0333f74edd7eb77a6511",
+      "size": 1441
+    },
+    {
+      "path": "docs/第一版架构与接入_20261026.md",
+      "sha256": "b3f3bc929441131d934e0f65e98877da87a9dcc989f10359509b1baac174f4cc",
+      "size": 4052
+    },
+    {
+      "path": "mcp-server/app.py",
+      "sha256": "ac82b287f8d87444855e361fbcd9f11883bcadb01ca63230a4141e2160d127ef",
+      "size": 239
+    },
+    {
+      "path": "mcp-server/config.py",
+      "sha256": "b31ec54095cc258494f2a72c59ec43814a583123e2e4054c092ba01de7e05101",
+      "size": 258
+    },
+    {
+      "path": "mcp-server/program_v1/bindings/registry.json",
+      "sha256": "5ce87d77d027e6a5fb387a30501dd155ef752219cb048971ef4f126b7ca13144",
+      "size": 264
+    },
+    {
+      "path": "mcp-server/program_v1/docs/架构决定.md",
+      "sha256": "5106db3f9b58e376bf711761fad32cc983d94c0ad08188be57b6fdb7f18b9c45",
+      "size": 1240
+    },
+    {
+      "path": "mcp-server/program_v1/docs/页面设计计划.md",
+      "sha256": "400d20092b9ca6a35e00c012c6eba8242ed418c64852f91062147249b3289bac",
+      "size": 584
+    },
+    {
+      "path": "mcp-server/program_v1/entry.py",
+      "sha256": "5c125740a6799c61c774c4a12f002c39ad11065d7f0b22798a1ea4a324e95b25",
+      "size": 1796
+    },
+    {
+      "path": "mcp-server/program_v1/fixtures/calculated_result_v1.json",
+      "sha256": "e6470f7adeba00804b178be5dc17a3087a88758178b9482cfd64b8cf81cf36d7",
+      "size": 837
+    },
+    {
+      "path": "mcp-server/program_v1/inputs/registry.json",
+      "sha256": "cdcd83844b695b2e3aef22c5e7bea38d5d15d0505ecc9c9390db5b41c59e558f",
+      "size": 295
+    },
+    {
+      "path": "mcp-server/program_v1/inputs/制造业_余额差异合成输入.xlsx",
+      "sha256": "970b094f1e0e2c8b0bed860893dde9dde91c17b564519390100e44984c92eed6",
+      "size": 3001
+    },
+    {
+      "path": "mcp-server/program_v1/inputs/制造业_程序计算合成输入.xlsx",
+      "sha256": "00613baa679620b938c009c20bb56f83baad14ef28bf5124b4db31dd5fdd9691",
+      "size": 3000
+    },
+    {
+      "path": "mcp-server/program_v1/qa_binding.json",
+      "sha256": "1d3964693318e420cf93301ce3d5fc7149d8841e1e37928f8c15c5a65efe9d05",
+      "size": 136
+    },
+    {
+      "path": "mcp-server/program_v1/requirements.lock.txt",
+      "sha256": "b0065af0d2d4c0bc5d84d8a7783f09ad2ce1c0405968310db8cd43980dcbe2db",
+      "size": 597
+    },
+    {
+      "path": "mcp-server/program_v1/src/account_binding.py",
+      "sha256": "4341c7d591751111226f13bf068e4c2216fd46f820de77a05b3a8eb9b3188034",
+      "size": 14356
+    },
+    {
+      "path": "mcp-server/program_v1/src/agent_guard.py",
+      "sha256": "c88e68e24909d4f660e9480f20031ae72e0b5db6676671f59151bfb3a4fcf77f",
+      "size": 5267
+    },
+    {
+      "path": "mcp-server/program_v1/src/app.py",
+      "sha256": "3c7a548530b25e0a5a74378d39a608561527b6753cc1a28ee900b76412a4672e",
+      "size": 2644
+    },
+    {
+      "path": "mcp-server/program_v1/src/cash_selection.py",
+      "sha256": "02d84a600a1756111ec6d71480e462b38874303a3c03aa46b2fe4f0aaf3c313e",
+      "size": 13497
+    },
+    {
+      "path": "mcp-server/program_v1/src/config.py",
+      "sha256": "3ad30070e367df82de8d4b0967889670d89f05f8a471a284fcf68160fecac6e1",
+      "size": 2545
+    },
+    {
+      "path": "mcp-server/program_v1/src/program_engine.py",
+      "sha256": "17d3cfec5bc4051c4448010f644833eb93c033c519e86028d05c02daac1d266b",
+      "size": 7970
+    },
+    {
+      "path": "mcp-server/program_v1/src/program_service.py",
+      "sha256": "9a3976a9fcf6804d9e21a6847d128f4e22558e88ff9663df6a716c056ae0b206",
+      "size": 1132
+    },
+    {
+      "path": "mcp-server/program_v1/src/program_workbench.py",
+      "sha256": "a09ac5bcb7d01c200ce4fb6b28702b12820627b7bfd553a1a2edd3bf38628732",
+      "size": 4813
+    },
+    {
+      "path": "mcp-server/program_v1/src/service.py",
+      "sha256": "4f1b1dadbea7072af39672b08980a81daf6ad28c2a928c77ccfb27c1b1df046d",
+      "size": 7870
+    },
+    {
+      "path": "mcp-server/program_v1/src/source_audit.py",
+      "sha256": "f9aa8401e9cf17c275820aee90da9ded6edc4a16a88015ba86d03d568a62da0a",
+      "size": 23654
+    },
+    {
+      "path": "mcp-server/program_v1/src/web_server.py",
+      "sha256": "bf9f12d84d46189d882cc671f0ebf22082fb7f8c4410209e40cf5460570063b1",
+      "size": 4890
+    },
+    {
+      "path": "mcp-server/program_v1/src/workbench.py",
+      "sha256": "d2f3fac04701dc9cbd6bed74858a16a7b76ddde6df32368f6a09b75a1d8bc16b",
+      "size": 8935
+    },
+    {
+      "path": "mcp-server/program_v1/tests/fixtures/account_binding/complete_bundle/balances.json",
+      "sha256": "073111bdba7e20fcab659d01784de3e35676921b3d5e5af3178f58b2d10ec92d",
+      "size": 1476
+    },
+    {
+      "path": "mcp-server/program_v1/tests/fixtures/account_binding/complete_bundle/context.json",
+      "sha256": "67d2ef3bd97b6b5b4b0e880aca1b2ce4ff3ff2ba838b7801f14808ca61a36eb9",
+      "size": 213
+    },
+    {
+      "path": "mcp-server/program_v1/tests/fixtures/account_binding/complete_bundle/evidence_manifest.json",
+      "sha256": "8e37c1b4a08529b893faeecc3bd9ba3a3706228ed7cda0dcbe5b8edd227dc020",
+      "size": 983
+    },
+    {
+      "path": "mcp-server/program_v1/tests/fixtures/account_binding/complete_bundle/scope.json",
+      "sha256": "7ab6b7418727daa6c608ce8477d14b83c26cdcc77976567d77d21d2f1d91ea69",
+      "size": 748
+    },
+    {
+      "path": "mcp-server/program_v1/tests/fixtures/account_binding/complete_bundle/sources/statement-A.json",
+      "sha256": "6abfefd0df1442fadf00b58613bed9a723f9a863235b379f69d7266d04bb40ed",
+      "size": 893
+    },
+    {
+      "path": "mcp-server/program_v1/tests/fixtures/account_binding/complete_bundle/sources/statement-B.json",
+      "sha256": "986be9088f56a4531873d35a413ae049455a224cbcfb71be50c5c898170d7fcb",
+      "size": 893
+    },
+    {
+      "path": "mcp-server/program_v1/tests/fixtures/account_binding/trusted_binding.json",
+      "sha256": "86b908be2e5ec109a1da40056463052af895b44f60d00e8ea7698ec06520d641",
+      "size": 740
+    },
+    {
+      "path": "mcp-server/program_v1/tests/test_original_source.py",
+      "sha256": "4972fb0d3cf06dff589ace6234173f20d4c71c9a76b33ca2ed9392be34b95cf9",
+      "size": 9647
+    },
+    {
+      "path": "mcp-server/program_v1/tests/test_program.py",
+      "sha256": "82609bf2c357278dbc604c1b612105910270f42b9f3fc384de2f3e252a9b14db",
+      "size": 6337
+    },
+    {
+      "path": "mcp-server/program_v1/tests/test_web.py",
+      "sha256": "6604b147923c2f122401741d976886e451ddd7ab664c299707115f3544a89406",
+      "size": 3956
+    },
+    {
+      "path": "mcp-server/program_v1/verify_dependencies.py",
+      "sha256": "e3f89c9dd95e427d8491860e95007c277a23fd777cd835f45d0f1ad7acc59595",
+      "size": 836
+    },
+    {
+      "path": "mcp-server/program_v1/verify_original_source.py",
+      "sha256": "29cd8b2829f0f96bef626ddaa5c77785b3037bce60cd6374b2f1fd872a55d55a",
+      "size": 3915
+    },
+    {
+      "path": "mcp-server/program_v1/verify_runtime.py",
+      "sha256": "80b100267ed5ac34558db3b7376c13f4346027405f9ffa4e30483d3e7a312203",
+      "size": 3718
+    },
+    {
+      "path": "mcp-server/requirements.txt",
+      "sha256": "b0065af0d2d4c0bc5d84d8a7783f09ad2ce1c0405968310db8cd43980dcbe2db",
+      "size": 597
+    },
+    {
+      "path": "mcp-server/千问连接器_程序计算_v1.json",
+      "sha256": "034f29923d65967b760667d1c8babb18d648a530c4ffaaf77062a06c425ab297",
+      "size": 292
+    },
+    {
+      "path": "README.md",
+      "sha256": "bd38fd7e2f17e6e6e4244db9fd28cf0168f3d9f35ad0e4acc370f7450e27726a",
+      "size": 1481
+    },
+    {
+      "path": "web/工作台_程序计算版.html",
+      "sha256": "0cbed34665c651265ac87656a366cfbc056a70bb03305262db3a2c4d073893f1",
+      "size": 17150
+    },
+    {
+      "path": "原八表接入_下一步验收.md",
+      "sha256": "afa4a571c40feec92c4a2c5dfe40908bba81f6305a27a7f60295828d072a9869",
+      "size": 880
+    },
+    {
+      "path": "启动工作台.ps1",
+      "sha256": "c79673c1db3eff09a7665ec4c0a48a8c948c69f4f36edb136aae62d5e3c41310",
+      "size": 1379
+    },
+    {
+      "path": "启动数据库通道.ps1",
+      "sha256": "75b38dbc6860d89bc4c260713f14a78db51777abcabf285709d70281bb44b50c",
+      "size": 451
+    },
+    {
+      "path": "开始组装_第一步.md",
+      "sha256": "192bf7a9e7f3e5d50c2b2be91e8f024f5ebd67c3c4dae951f5c6c6cc43549887",
+      "size": 847
+    },
+    {
+      "path": "打开工作台.cmd",
+      "sha256": "867f5d95b3e82e6ebf69820a9fdf8156ea5c540890ca8a103af53072d51a2425",
+      "size": 125
+    },
+    {
+      "path": "项目进度.md",
+      "sha256": "80c8c89ad22e5fcf6ee0b0dc8dbee773a6dc26c449a010494a6923e71db65c3b",
+      "size": 2363
+    }
+  ]
+}

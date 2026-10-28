@@ -1,0 +1,8 @@
+{
+  "tenant_id": "fixture-tenant",
+  "company_id": "fixture-manufacturing",
+  "period": "2026-08",
+  "source_revision": "fixture-source-v1",
+  "run_id": "fixture-run-202608",
+  "industry": "manufacturing"
+}

@@ -1,0 +1,26 @@
+[Unit]
+Description=Cashflow Risk Workbench - Frontend MCP gateway (Qwen Office entry)
+Documentation=file:///opt/cashflow/DEPLOY.md
+After=network-online.target mysql.service cf-mcp-http.service
+Wants=network-online.target mysql.service
+
+[Service]
+Type=simple
+User=cfrun
+Group=cfrun
+WorkingDirectory=/opt/cashflow/qwen-integration
+EnvironmentFile=/opt/cashflow/deploy/.mcp-frontend.env
+Environment=CF_MCP_PORT=8090
+Environment=PYTHONIOENCODING=utf-8
+# Runs stdlib-only, but the venv interpreter is pinned for consistency with the
+# other units. The token is mandatory: without it the process refuses to start.
+ExecStart=/opt/cashflow/venv/bin/python -B -u /opt/cashflow/qwen-integration/mcp_frontend_server.py --http
+Restart=always
+RestartSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

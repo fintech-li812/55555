@@ -1,0 +1,20 @@
+# Server-side dependency set.
+#
+# Derived from mcp-server/program_v1/requirements.lock.txt with pywin32 removed
+# (Windows-only) and the pip resolver left free to pick matching transitive
+# versions for Linux/CPython 3.12.
+#
+# Pinned to the same major versions the local reference environment uses, so the
+# numbers the server produces stay comparable with the golden baseline.
+mcp==1.30.0
+PyMySQL==1.1.2
+python-dotenv==1.2.4
+uvicorn==0.54.0
+starlette==1.9.0
+pydantic==2.14.1
+pydantic-settings==2.16.1
+httpx==0.28.1
+httpx-sse==0.4.3
+sse-starlette==3.5.0
+anyio==4.15.1
+python-multipart==0.0.32

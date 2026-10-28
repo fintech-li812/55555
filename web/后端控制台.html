@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="workbench-token" content="__CSRF_TOKEN__"><title>后端控制台 · 现金流工作台</title>
+<style>
+:root{--paper:#eef3f8;--ink:#18394e;--blue:#235ed4;--teal:#237d72;--amber:#9b5d06;--red:#b83242;--line:#d4dfe9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.65 "Segoe UI","Microsoft YaHei",sans-serif}
+button,select,input{font:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:white;color:var(--ink);border-radius:5px;padding:7px 13px}
+button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+button:disabled{opacity:.42;cursor:not-allowed}
+button:focus-visible{outline:3px solid #7cacf8;outline-offset:3px}
+.shell{display:grid;grid-template-columns:238px 1fr;min-height:100vh}
+aside{background:var(--ink);color:white;padding:32px 24px;display:flex;flex-direction:column;gap:24px}
+aside .brand{font-size:21px;font-weight:650;line-height:1.5}
+aside p{font-size:13px;color:#c3d2df;margin:0}
+aside nav a{display:block;padding:10px 0;border-bottom:1px solid #446074;color:#dbe7f2;text-decoration:none;font-size:14px}
+aside nav a:hover{color:#fff}
+aside footer{margin-top:auto;font-size:12px;color:#b4c8d8}
+main{padding:30px 42px 56px;max-width:1500px;width:100%}
+.top{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:8px;flex-wrap:wrap}
+.top h1{font-size:27px;margin:0;font-weight:650}
+.muted{color:#60778a;font-size:13px}
+.badge{font-size:13px;padding:4px 10px;border:1px solid #b8cde5;background:#e0edfc;border-radius:3px;white-space:nowrap}
+.badge.ok{background:#e2f5ef;border-color:#a8dccd;color:#166b5f}
+.badge.bad{background:#fde9eb;border-color:#f0bcc2;color:#93212f}
+.card{background:white;border:1px solid var(--line);padding:22px 26px;margin-top:18px}
+.card h2{font-size:17px;margin:0 0 4px;font-weight:650}
+.card .sub{color:#60778a;font-size:13px;margin:0 0 16px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:#627b8e;font-weight:500;font-size:13px}
+td,th{padding:9px 10px;border-bottom:1px solid #e2e9ef;vertical-align:top}
+td:first-child,th:first-child{padding-left:0}
+td.num{font-variant-numeric:tabular-nums;text-align:right}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px 26px}
+.kv div span{display:block;font-size:12px;color:#60778a;margin-bottom:2px}
+.kv div b{font-weight:600;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:#c3cfda}
+.dot.up{background:#1f9d78}
+.dot.down{background:#c8424f}
+code,pre{font-family:Consolas,monospace}
+code{font-size:13px;background:#f1f5fa;padding:1px 6px;border-radius:3px;border:1px solid #e2e9ef}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.55;background:#f6f9fc;padding:12px;max-height:220px;overflow:auto;border-radius:4px;border:1px solid #e6edf4;margin:8px 0 0}
+.mono{font-family:Consolas,monospace;font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.notice{background:#fff5df;border-left:4px solid var(--amber);padding:13px 17px;color:#77500d;margin:18px 0 0;font-size:14px}
+.ok-text{color:var(--teal)}.warn-text{color:var(--red)}
+.tag{font-size:12px;padding:2px 8px;border-radius:3px;background:#eef3f8;border:1px solid var(--line);color:#4c6a80;white-space:nowrap}
+.tag.get{background:#e6f0fe;border-color:#c3d8f8;color:#1b4ba8}
+.tag.post{background:#fdf0e3;border-color:#f2d8ba;color:#8a5305}
+@media(max-width:960px){.shell{grid-template-columns:1fr}aside{padding:18px 22px}aside nav,aside footer{display:none}main{padding:22px}.kv{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<div class="shell">
+<aside>
+<div class="brand">企业财务<br>风险管控工作台</div>
+<p>后端控制台<br>只读 · 不写业务数据</p>
+<nav>
+<a href="#services">服务与端口</a>
+<a href="#database">数据库</a>
+<a href="#endpoints">HTTP 接口</a>
+<a href="#mcp">MCP 与工具</a>
+<a href="#notify">推送通道</a>
+<a href="/">&larr; 回到工作台页面</a>
+</nav>
+<footer>本页只展示运行状态。<br>不含口令与连接串。<br>不触发计算与入库。</footer>
+</aside>
+
+<main>
+<div class="top">
+<div>
+<h1>后端控制台</h1>
+<div class="muted">一台服务器上的全部后端组件，实际探测结果，不是示意图</div>
+</div>
+<div class="actions">
+<span id="health" class="badge">正在探测</span>
+<button id="refresh" class="primary">重新探测</button>
+</div>
+</div>
+
+<div class="card">
+<h2>运行实例</h2>
+<p class="sub" id="checkedAt">本次探测时间：—</p>
+<div class="kv" id="runtime"><div><span>加载中</span><b>—</b></div></div>
+</div>
+
+<div class="card" id="services">
+<h2>服务与端口</h2>
+<p class="sub">绿点表示该端口正在监听。全部只绑回环（127.0.0.1），只有 80/443 对外。</p>
+<table><thead><tr><th>组件</th><th>端口</th><th>监听</th><th>作用</th></tr></thead><tbody id="serviceRows"><tr><td colspan="4" class="muted">加载中</td></tr></tbody></table>
+</div>
+
+<div class="card" id="database">
+<h2>数据库</h2>
+<p class="sub" id="dbSub">正在连接</p>
+<div class="kv" id="dbKv"></div>
+<table style="margin-top:18px"><thead><tr><th>记录编号</th><th>请求编号</th><th>期间</th><th>操作</th><th>期末余额</th><th>写入时间</th></tr></thead><tbody id="dbRows"><tr><td colspan="6" class="muted">—</td></tr></tbody></table>
+<p class="muted" style="margin:12px 0 0">只展示最近 5 条。期末余额取自写入时的结果快照。</p>
+</div>
+
+<div class="card" id="endpoints">
+<h2>HTTP 接口</h2>
+<p class="sub">点“测”会真实请求一次（只测只读接口）。返回结果直接显示在下方。</p>
+<table><thead><tr><th>方法</th><th>路径</th><th>说明</th><th></th></tr></thead><tbody id="endpointRows"><tr><td colspan="4" class="muted">加载中</td></tr></tbody></table>
+<pre id="probeOut">尚未测试。</pre>
+</div>
+
+<div class="card" id="mcp">
+<h2>MCP 端点</h2>
+<p class="sub" id="mcpSub">—</p>
+<div class="kv" id="mcpKv"></div>
+<table style="margin-top:18px"><thead><tr><th>工具名</th><th>作用</th></tr></thead><tbody id="toolRows"></tbody></table>
+</div>
+
+<div class="card" id="notify">
+<h2>推送通道</h2>
+<p class="sub">未配置的通道不会发送，也不会静默假装成功。</p>
+<div class="kv" id="notifyKv"></div>
+</div>
+
+<div class="notice">这个页面是只读的：不执行计算、不写库、不发送通知。要跑业务，请回工作台页面操作，或让千问通过 MCP 调用。</div>
+</main>
+</div>
+
+<script>
+const $=id=>document.getElementById(id), token=document.querySelector('meta[name="workbench-token"]').content;
+let timer=null;
+
+function fmtDur(sec){const s=Math.max(0,Math.floor(sec)),d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);if(d)return d+' 天 '+h+' 小时';if(h)return h+' 小时 '+m+' 分';if(m)return m+' 分 '+(s%60)+' 秒';return s+' 秒'}
+function esc(v){return String(v==null?'—':v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function kv(target,items){$(target).innerHTML=items.map(([k,v,cls])=>'<div><span>'+esc(k)+'</span><b'+(cls?' class="'+cls+'"':'')+'>'+esc(v)+'</b></div>').join('')}
+
+async function load(){
+  $('health').textContent='正在探测';
+  $('health').className='badge';
+  try{
+    const r=await fetch('/api/console',{cache:'no-store'});
+    const d=await r.json();
+    if(!r.ok)throw Error(d.detail||d.error||'探测失败');
+    render(d);
+  }catch(e){
+    $('health').textContent='探测失败：'+e.message;
+    $('health').className='badge bad';
+  }
+}
+
+function render(d){
+  $('health').textContent='后端在线 · '+d.services.filter(s=>s.listening).length+'/'+d.services.length+' 端口在听';
+  $('health').className='badge '+(d.database&&d.database.connected?'ok':'');
+  $('checkedAt').textContent='本次探测时间：'+d.checked_at;
+
+  kv('runtime',[
+    ['应用', d.runtime.app],
+    ['进程号 PID', d.runtime.pid],
+    ['监听地址', d.runtime.bind],
+    ['Python', d.runtime.python],
+    ['已运行', fmtDur(d.runtime.uptime_seconds)],
+    ['启动于', d.runtime.started_at]
+  ]);
+
+  $('serviceRows').innerHTML=d.services.map(s=>'<tr><td><span class="dot '+(s.listening?'up':'down')+'"></span>'+esc(s.name)+'</td><td class="mono">'+s.port+'</td><td>'+(s.listening?'<span class="ok-text">在听</span>':'<span class="warn-text">未监听</span>')+'</td><td class="muted">'+esc(s.note)+'</td></tr>').join('');
+
+  const db=d.database||{};
+  $('dbSub').textContent=db.connected?('已连接 '+db.engine+' · 库 '+db.name+' · 表 '+db.table):('未连接：'+(db.detail||'未知原因'));
+  $('dbKv').innerHTML=db.connected
+    ? [['引擎',db.engine],['库名',db.name],['表名',db.table],['总记录数',db.rows],['账号',db.user],['地址',db.host+':'+db.port]].map(([k,v])=>'<div><span>'+esc(k)+'</span><b>'+esc(v)+'</b></div>').join('')
+    : '<div><span>状态</span><b class="warn-text">不可用</b></div>';
+  $('dbRows').innerHTML=(db.recent&&db.recent.length)
+    ? db.recent.map(x=>'<tr><td class="mono">'+esc(String(x.record_id).slice(0,8))+'…</td><td class="mono">'+esc(x.request_id)+'</td><td class="mono">'+esc(x.period)+'</td><td>'+esc(x.operation)+'</td><td class="num">'+esc(x.closing==null?'—':x.closing)+'</td><td class="muted">'+esc(x.stored_at)+'</td></tr>').join('')
+    : '<tr><td colspan="6" class="muted">表里还没有记录。</td></tr>';
+
+  $('endpointRows').innerHTML=d.endpoints.map((e,i)=>'<tr><td><span class="tag '+e.method.toLowerCase()+'">'+e.method+'</span></td><td class="mono">'+esc(e.path)+'</td><td class="muted">'+esc(e.note)+'</td><td style="text-align:right">'+(e.probe?'<button data-path="'+esc(e.path)+'">测</button>':'<span class="muted">需令牌</span>')+'</td></tr>').join('');
+  $('endpointRows').querySelectorAll('button[data-path]').forEach(b=>b.onclick=()=>probe(b.dataset.path));
+
+  const m=d.mcp||{};
+  $('mcpSub').textContent=m.transport+' · 供千问办公或远程 Agent 连接';
+  kv('mcpKv',[['地址',m.url],['传输',m.transport],['工具数',(m.tools||[]).length],['认证',m.auth||'DNS 重绑定防护 + Host 白名单']]);
+  $('toolRows').innerHTML=(m.tools||[]).map(t=>'<tr><td class="mono">'+esc(t.name)+'</td><td class="muted">'+esc(t.note)+'</td></tr>').join('');
+
+  const n=d.notify||{};
+  kv('notifyKv',[['钉钉',n.dingtalk?'已配置':'未配置',n.dingtalk?'ok-text':'warn-text'],['企业微信',n.wecom?'已配置':'未配置',n.wecom?'ok-text':'warn-text'],['发送策略',n.policy||'失败即报错，不假装成功']]);
+}
+
+async function probe(path){
+  $('probeOut').textContent='GET '+path+' …';
+  try{
+    const t0=performance.now();
+    const r=await fetch(path,{cache:'no-store'});
+    const ms=Math.round(performance.now()-t0);
+    const text=await r.text();
+    let shown=text;
+    try{shown=JSON.stringify(JSON.parse(text),null,2)}catch(e){}
+    if(shown.length>1600)shown=shown.slice(0,1600)+'\n…（已截断）';
+    $('probeOut').textContent='GET '+path+'\nHTTP '+r.status+' · '+ms+' ms\n\n'+shown;
+  }catch(e){
+    $('probeOut').textContent='GET '+path+'\n请求失败：'+e.message;
+  }
+}
+
+$('refresh').onclick=()=>{load();};
+load();
+timer=setInterval(()=>{},60000);
+</script></body></html>

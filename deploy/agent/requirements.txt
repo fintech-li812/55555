@@ -1,0 +1,4 @@
+# 常驻 agent 服务依赖。刻意保持最小集：2G 内存机器不装 Web 框架。
+# 安装时如走阿里云内网镜像，需要 --trusted-host（见 scripts/install.sh）。
+PyMySQL==1.1.2
+PyYAML==6.0.2

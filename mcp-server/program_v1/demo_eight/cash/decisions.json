@@ -1,0 +1,53 @@
+{
+  "schema_version": "mfg-cash-link-decisions.v1",
+  "tenant_id": "fixture-tenant",
+  "company_id": "fixture-manufacturing",
+  "period": "2026-08",
+  "source_revision": "synthetic-eight-evidence-v1",
+  "run_id": "synthetic-eight-binding-v1",
+  "origin": "offline_fixture",
+  "duplicates": [],
+  "transfers": [],
+  "links": [
+    {
+      "primary_record_id": "银行流水-5",
+      "corroborating_record_ids": [
+        "投资现金流-3"
+      ],
+      "link_type": "transaction_evidence",
+      "evidence_ref": "SYNTHETIC-EXACT-WORKBOOK-LINK"
+    },
+    {
+      "primary_record_id": "银行流水-6",
+      "corroborating_record_ids": [
+        "投资现金流-4"
+      ],
+      "link_type": "transaction_evidence",
+      "evidence_ref": "SYNTHETIC-EXACT-WORKBOOK-LINK"
+    },
+    {
+      "primary_record_id": "银行流水-7",
+      "corroborating_record_ids": [
+        "筹资信息-5"
+      ],
+      "link_type": "transaction_evidence",
+      "evidence_ref": "SYNTHETIC-EXACT-WORKBOOK-LINK"
+    },
+    {
+      "primary_record_id": "银行流水-8",
+      "corroborating_record_ids": [
+        "筹资信息-6"
+      ],
+      "link_type": "transaction_evidence",
+      "evidence_ref": "SYNTHETIC-EXACT-WORKBOOK-LINK"
+    },
+    {
+      "primary_record_id": "银行流水-3",
+      "corroborating_record_ids": [
+        "应收账款-3"
+      ],
+      "link_type": "document_reference",
+      "evidence_ref": "SYNTHETIC-INVOICE-BANK-REFERENCE"
+    }
+  ]
+}

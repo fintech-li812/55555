@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "cashflow-workbench": {
+      "command": "D:/AI_Command_Workspace/runtime/cashflow_v1/Scripts/python.exe",
+      "args": [
+        "-B",
+        "-u",
+        "D:/CashflowRiskWorkbench/qwen-integration/mcp_frontend_server.py"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8",
+        "CF_ENGINE_MCP_URL": "https://workbench.example.com/mcp"
+      },
+      "transport": "stdio",
+      "disabled": false
+    }
+  }
+}

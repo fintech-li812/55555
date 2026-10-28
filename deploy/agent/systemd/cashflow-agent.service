@@ -1,0 +1,49 @@
+[Unit]
+Description=Cashflow Risk Agent (常驻巡检/周报/对话服务)
+Documentation=file:/opt/cashflow-agent/current/README.md
+After=network-online.target mysql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=cfagent
+Group=cfagent
+
+WorkingDirectory=/opt/cashflow-agent/current
+EnvironmentFile=/etc/cashflow-agent/agent.env
+ExecStart=/opt/cashflow-agent/venv/bin/python -m app.main
+
+# ---- 自愈：任何退出都拉起，5 秒后重试；5 分钟内崩溃 5 次才放弃（交给运维介入）----
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# ---- 资源上限：2G 机器上给 agent 封顶，超限被杀后由上面策略重启 ----
+MemoryMax=320M
+MemoryHigh=256M
+CPUQuota=60%
+
+# ---- 最小权限与文件系统隔离 ----
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+ReadWritePaths=/var/lib/cashflow-agent /var/log/cashflow-agent
+
+# ---- 日志：journald + 文件双写（文件由 logrotate 管理）----
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cashflow-agent
+
+# ---- 优雅退出 ----
+KillSignal=SIGTERM
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

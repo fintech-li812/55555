@@ -1,0 +1,10 @@
+[Unit]
+Description=Cashflow Risk Workbench - stack health probe
+Documentation=file:///opt/cashflow/DEPLOY.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/opt/cashflow/deploy/health_check.sh

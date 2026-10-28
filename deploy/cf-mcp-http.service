@@ -1,0 +1,24 @@
+[Unit]
+Description=Cashflow Risk Workbench - MCP over HTTP (for Qwen Office / remote agents)
+Documentation=file:///opt/cashflow/DEPLOY.md
+After=network-online.target mysql.service cf-workbench.service
+Wants=network-online.target mysql.service
+
+[Service]
+Type=simple
+User=cfrun
+Group=cfrun
+WorkingDirectory=/opt/cashflow/mcp-server/program_v1
+EnvironmentFile=/opt/cashflow/deploy/.env
+Environment=MCP_HTTP_HOST=127.0.0.1
+Environment=MCP_HTTP_PORT=8123
+ExecStart=/opt/cashflow/venv/bin/python /opt/cashflow/mcp-server/program_v1/entry.py http
+Restart=always
+RestartSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,5 @@
+{
+  "database": "cfqa_v2_20261024_043125",
+  "port": 13317,
+  "scope": "existing isolated QA only; no production tables or grants"
+}

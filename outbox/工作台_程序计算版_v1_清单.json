@@ -1,0 +1,208 @@
+{
+  "schema_version": "mfg-program-release-manifest.v1",
+  "date": "2026-10-26",
+  "root": "D:/CashflowRiskWorkbench",
+  "scope": "First-version synthetic program calculation QA candidate; existing Python runtime required; Qwen import pending",
+  "files": [
+    {
+      "path": "agent-prompts/skills/mfg-program-workbench/SKILL.md",
+      "size": 3327,
+      "sha256": "f3604f7ba6a6cf22ef6bead26f81befef97084111cf0bbdee48d4197ff876c28"
+    },
+    {
+      "path": "agent-prompts/制造业现金流_程序计算版主提示词.md",
+      "size": 718,
+      "sha256": "04ad40ea3e1768aa0adffd464fae431838517cfab66f8a5a7123aa60d49651d9"
+    },
+    {
+      "path": "AGENTS.md",
+      "size": 1455,
+      "sha256": "a0a6b9088d886df9abf9ac8ed7e64e9567f5183251475a5ebf47659b554d9acf"
+    },
+    {
+      "path": "data/制造业_样例数据.xlsx",
+      "size": 20259,
+      "sha256": "7e32b1eca8cfe892bd0ee96dfe257b03965018e607fc0e8cbaface33c13d0a3b"
+    },
+    {
+      "path": "docs/程序计算版_验证记录.json",
+      "size": 704,
+      "sha256": "325e14292559b5d70d313dd25c65f883c8c15570b3945bccf6aaea498ccee833"
+    },
+    {
+      "path": "docs/第一版架构与接入_20261026.md",
+      "size": 3688,
+      "sha256": "ab988d4396647989b24ddaadddac2173711b6bf1417affce65dbcb5df2659b13"
+    },
+    {
+      "path": "docs/重建交付报告_20261026.md",
+      "size": 3112,
+      "sha256": "27da5423a09583529ad4b234d928208bcbf0561ca36f90ef00f3c8783b0c9da5"
+    },
+    {
+      "path": "mcp-server/app.py",
+      "size": 239,
+      "sha256": "ac82b287f8d87444855e361fbcd9f11883bcadb01ca63230a4141e2160d127ef"
+    },
+    {
+      "path": "mcp-server/config.py",
+      "size": 258,
+      "sha256": "b31ec54095cc258494f2a72c59ec43814a583123e2e4054c092ba01de7e05101"
+    },
+    {
+      "path": "mcp-server/program_v1/docs/架构决定.md",
+      "size": 1240,
+      "sha256": "5106db3f9b58e376bf711761fad32cc983d94c0ad08188be57b6fdb7f18b9c45"
+    },
+    {
+      "path": "mcp-server/program_v1/docs/页面设计计划.md",
+      "size": 584,
+      "sha256": "400d20092b9ca6a35e00c012c6eba8242ed418c64852f91062147249b3289bac"
+    },
+    {
+      "path": "mcp-server/program_v1/entry.py",
+      "size": 1796,
+      "sha256": "5c125740a6799c61c774c4a12f002c39ad11065d7f0b22798a1ea4a324e95b25"
+    },
+    {
+      "path": "mcp-server/program_v1/fixtures/calculated_result_v1.json",
+      "size": 837,
+      "sha256": "e6470f7adeba00804b178be5dc17a3087a88758178b9482cfd64b8cf81cf36d7"
+    },
+    {
+      "path": "mcp-server/program_v1/inputs/registry.json",
+      "size": 295,
+      "sha256": "cdcd83844b695b2e3aef22c5e7bea38d5d15d0505ecc9c9390db5b41c59e558f"
+    },
+    {
+      "path": "mcp-server/program_v1/inputs/制造业_余额差异合成输入.xlsx",
+      "size": 3001,
+      "sha256": "970b094f1e0e2c8b0bed860893dde9dde91c17b564519390100e44984c92eed6"
+    },
+    {
+      "path": "mcp-server/program_v1/inputs/制造业_程序计算合成输入.xlsx",
+      "size": 3000,
+      "sha256": "00613baa679620b938c009c20bb56f83baad14ef28bf5124b4db31dd5fdd9691"
+    },
+    {
+      "path": "mcp-server/program_v1/qa_binding.json",
+      "size": 136,
+      "sha256": "1d3964693318e420cf93301ce3d5fc7149d8841e1e37928f8c15c5a65efe9d05"
+    },
+    {
+      "path": "mcp-server/program_v1/requirements.lock.txt",
+      "size": 597,
+      "sha256": "b0065af0d2d4c0bc5d84d8a7783f09ad2ce1c0405968310db8cd43980dcbe2db"
+    },
+    {
+      "path": "mcp-server/program_v1/src/agent_guard.py",
+      "size": 5267,
+      "sha256": "c88e68e24909d4f660e9480f20031ae72e0b5db6676671f59151bfb3a4fcf77f"
+    },
+    {
+      "path": "mcp-server/program_v1/src/app.py",
+      "size": 2312,
+      "sha256": "9476841b00ae0f4d62f33a233d2f138eb0311266fe524dd6c4ede0003a7c95a6"
+    },
+    {
+      "path": "mcp-server/program_v1/src/config.py",
+      "size": 2545,
+      "sha256": "3ad30070e367df82de8d4b0967889670d89f05f8a471a284fcf68160fecac6e1"
+    },
+    {
+      "path": "mcp-server/program_v1/src/program_engine.py",
+      "size": 7970,
+      "sha256": "17d3cfec5bc4051c4448010f644833eb93c033c519e86028d05c02daac1d266b"
+    },
+    {
+      "path": "mcp-server/program_v1/src/program_service.py",
+      "size": 1132,
+      "sha256": "9a3976a9fcf6804d9e21a6847d128f4e22558e88ff9663df6a716c056ae0b206"
+    },
+    {
+      "path": "mcp-server/program_v1/src/program_workbench.py",
+      "size": 2871,
+      "sha256": "76e0dad0804e51f3326ed9a75c4ea51b4d44298c22042389e6dd7c43cae3ce5a"
+    },
+    {
+      "path": "mcp-server/program_v1/src/service.py",
+      "size": 7870,
+      "sha256": "4f1b1dadbea7072af39672b08980a81daf6ad28c2a928c77ccfb27c1b1df046d"
+    },
+    {
+      "path": "mcp-server/program_v1/src/web_server.py",
+      "size": 4255,
+      "sha256": "87d464b90e0d3ed3ce6db8620cf0be13b773adca0056c97402d0652f310da890"
+    },
+    {
+      "path": "mcp-server/program_v1/src/workbench.py",
+      "size": 8935,
+      "sha256": "d2f3fac04701dc9cbd6bed74858a16a7b76ddde6df32368f6a09b75a1d8bc16b"
+    },
+    {
+      "path": "mcp-server/program_v1/tests/test_program.py",
+      "size": 6337,
+      "sha256": "82609bf2c357278dbc604c1b612105910270f42b9f3fc384de2f3e252a9b14db"
+    },
+    {
+      "path": "mcp-server/program_v1/tests/test_web.py",
+      "size": 3461,
+      "sha256": "24a922efb72c2771073101f6909362fe787a69e9b2e03b4243db8f0c7029ecb1"
+    },
+    {
+      "path": "mcp-server/program_v1/verify_dependencies.py",
+      "size": 836,
+      "sha256": "e3f89c9dd95e427d8491860e95007c277a23fd777cd835f45d0f1ad7acc59595"
+    },
+    {
+      "path": "mcp-server/program_v1/verify_runtime.py",
+      "size": 3654,
+      "sha256": "13106d12f2e162e12c8d54411df68339070e736a6256003c3351af06fa71c774"
+    },
+    {
+      "path": "mcp-server/requirements.txt",
+      "size": 597,
+      "sha256": "b0065af0d2d4c0bc5d84d8a7783f09ad2ce1c0405968310db8cd43980dcbe2db"
+    },
+    {
+      "path": "mcp-server/千问连接器_程序计算_v1.json",
+      "size": 292,
+      "sha256": "034f29923d65967b760667d1c8babb18d648a530c4ffaaf77062a06c425ab297"
+    },
+    {
+      "path": "README.md",
+      "size": 1182,
+      "sha256": "b25ac838df5ebaf127ab131f3bf85f9e78cfd4a7d3a7aeb0cf244ce79608ac13"
+    },
+    {
+      "path": "web/工作台_程序计算版.html",
+      "size": 14741,
+      "sha256": "0d34f4b86009ad86c546f5eaeebda2992dd7f104423b865025b963ea0004ea3b"
+    },
+    {
+      "path": "启动工作台.ps1",
+      "size": 1379,
+      "sha256": "c79673c1db3eff09a7665ec4c0a48a8c948c69f4f36edb136aae62d5e3c41310"
+    },
+    {
+      "path": "启动数据库通道.ps1",
+      "size": 451,
+      "sha256": "75b38dbc6860d89bc4c260713f14a78db51777abcabf285709d70281bb44b50c"
+    },
+    {
+      "path": "开始组装_第一步.md",
+      "size": 847,
+      "sha256": "192bf7a9e7f3e5d50c2b2be91e8f024f5ebd67c3c4dae951f5c6c6cc43549887"
+    },
+    {
+      "path": "打开工作台.cmd",
+      "size": 125,
+      "sha256": "867f5d95b3e82e6ebf69820a9fdf8156ea5c540890ca8a103af53072d51a2425"
+    },
+    {
+      "path": "项目进度.md",
+      "size": 767,
+      "sha256": "f87e00ff994e35e2da0ff9c0376518ac73dfa3bd7b611c9c6d38419bad7346eb"
+    }
+  ]
+}

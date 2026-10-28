@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>制造业现金流风控工作台 · 千问中枢 v10</title>
+<style>
+:root{--paper:#f4f7fa;--ink:#18394e;--blue:#235ed4;--green:#1a7f5a;--amber:#a06800;--red:#b83242;
+--line:#dbe4ec;--muted:#6b8298;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.65 "Segoe UI","Microsoft YaHei",sans-serif}
+.wrap{max-width:1320px;margin:0 auto;padding:20px 20px 60px}
+h1{font-size:23px;margin:0 0 3px;font-weight:650}
+h2{font-size:16px;margin:0 0 10px;font-weight:650}
+h3{font-size:13.5px;margin:0 0 7px;font-weight:650;color:#3d5568}
+.sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin-bottom:12px}
+.muted{color:var(--muted);font-size:12.5px}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:12px}
+.badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:3px;border:1px solid var(--line);background:#eef3f9;color:var(--muted)}
+.badge.ok{background:#e6f4ee;border-color:#b6ddc9;color:var(--green)}
+.badge.warn{background:#fdf3e0;border-color:#e8cd9a;color:var(--amber)}
+.badge.err{background:#fbeaec;border-color:#efc2c8;color:var(--red)}
+/* 顶部指示灯 */
+.light{display:flex;align-items:center;gap:18px;padding:16px 20px;border-radius:10px;border:1px solid var(--line);background:#fff;margin-bottom:12px;flex-wrap:wrap}
+.dotlamp{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;flex:0 0 auto;background:#9bb0c2}
+.lamp-绿灯{background:var(--green)}.lamp-黄灯{background:var(--amber)}.lamp-红灯{background:var(--red)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.legend b{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+button{cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:5px;padding:8px 14px;font:inherit}
+button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+select,input{width:100%;padding:8px;border:1px solid #b5c6d6;background:#fff;color:var(--ink);border-radius:4px;font:inherit}
+.cols{display:grid;grid-template-columns:1.05fr .95fr;gap:12px}
+@media(max-width:980px){.cols{grid-template-columns:1fr}}
+/* 对话 */
+#chat{height:330px;overflow:auto;border:1px solid var(--line);border-radius:6px;background:#fbfcfe;padding:12px}
+.msg{margin-bottom:10px;font-size:13.5px;line-height:1.6}
+.msg.me{text-align:right}.msg.me .b{background:#eaf2ff;border-color:#bcd4f5}
+.msg .b{display:inline-block;max-width:86%;padding:8px 11px;border:1px solid var(--line);border-radius:7px;background:#fff;text-align:left}
+.msg .b.sys{background:#f6f8fa;color:var(--muted);font-size:12.5px}
+.msg .b.agent{background:#f2fbf6;border-color:#bfe3d0}
+.row{display:flex;gap:8px;margin-top:9px}
+.row input{flex:1}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chips button{padding:5px 10px;font-size:12.5px}
+/* 任务时间线 */
+.steps{list-style:none;padding:0;margin:0}
+.steps li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.steps li:last-child{border-bottom:0}
+.st{width:16px;height:16px;border-radius:50%;flex:0 0 auto;margin-top:3px;background:#c9d6e2}
+.st.running{background:var(--blue);animation:pulse 1s infinite}
+.st.done{background:var(--green)}.st.failed{background:var(--red)}
+@keyframes pulse{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+th{background:#f7fafd;font-weight:600;font-size:12.5px;color:#3d5568}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px}
+.k{background:#fbfcfe;border:1px solid var(--line);border-radius:7px;padding:10px 12px}
+.k .lab{font-size:12px;color:var(--muted);margin-bottom:4px}
+.k .val{font-size:18px;font-weight:650;font-variant-numeric:tabular-nums}
+pre{background:#f8fafc;border:1px solid var(--line);border-radius:6px;padding:9px;overflow:auto;max-height:230px;font-size:11.5px;margin:7px 0 0}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:#c9d6e2}
+.dot.on{background:var(--green)}
+</style></head><body>
+<div class="wrap">
+  <h1>制造业现金流风控工作台 · 千问中枢 v10</h1>
+  <div class="sub">前端 ⇄ 千问办公（意图解析 / 编排） ⇄ MCP 工具层（算钱与判定）。指令下发、中间状态与结果全部实时回传，参数可随时调整并立即重跑。</div>
+
+  <div class="light">
+    <div class="dotlamp" id="lamp">待评估</div>
+    <div style="flex:1;min-width:260px">
+      <div style="font-size:18px;font-weight:650" id="lvl">尚未运行</div>
+      <div class="muted" id="lvlwhy">运行后显示融合判定、缓冲判定与取严结果</div>
+    </div>
+    <div style="flex:0 0 auto">
+      <div class="kv">
+        <div class="k"><div class="lab">Q 数据质量</div><div class="val" id="q">—</div></div>
+        <div class="k"><div class="lab">D 判别得分</div><div class="val" id="d">—</div></div>
+        <div class="k"><div class="lab">P 舞弊概率</div><div class="val" id="p">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>预警指示灯定义（三色）</h2>
+    <div class="legend">
+      <span><b style="background:var(--green)"></b><b>绿灯</b>　缓冲倍数 ≥ K黄，且三层融合 FUSE 判健康</span>
+      <span><b style="background:var(--amber)"></b><b>黄灯</b>　K红 ≤ 缓冲倍数 &lt; K黄，或 FUSE 判黄</span>
+      <span><b style="background:var(--red)"></b><b>红灯</b>　缓冲倍数 &lt; K红，或 FUSE 判红（Q 不可用 / Q&lt;0.3 / D&lt;0 且 P≥0.7）</span>
+    </div>
+    <div class="muted" style="margin-top:7px">最终灯色 = 三层融合 与 现金流缓冲判定 <b>取较严格者</b>（v8 文档 4.0）。K黄/K红 随行业切换。</div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <h2>对话（Agent 双向交互）</h2>
+      <div id="chat"></div>
+      <div class="row">
+        <input id="txt" placeholder="例如：帮我跑一遍制造业风险评估，金额 30 万">
+        <button class="primary" id="send">发送</button>
+        <button id="stop">停止</button>
+      </div>
+      <div class="chips">
+        <button data-t="跑一遍三层风控评估">三层风控评估</button>
+        <button data-t="计算现金流并核对余额">现金流计算核对</button>
+        <button data-t="跑压力测试看最坏情况">压力测试</button>
+        <button data-t="查看三态追踪与到账验证">三态追踪</button>
+        <button data-t="执行数据清洗并入库">数据清洗入库</button>
+        <button data-t="查最近留痕记录">留痕审计</button>
+        <button data-t="检查数据范围与能力覆盖">数据范围</button>
+      </div>
+      <div class="muted" style="margin-top:8px">
+        <span class="dot" id="conn"></span><span id="connTxt">事件流连接中…</span>
+        <span style="margin-left:10px" id="agentTag"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>策略参数（实时可调，改完立即重跑）</h2>
+      <div class="kv">
+        <div><label class="muted">行业（决定 K黄/K红）</label><select id="p_ind"></select></div>
+        <div><label class="muted">受评对象</label><select id="p_scn">
+          <option value="healthy">健康样本</option><option value="edge">临界样本</option>
+          <option value="risk">风险样本</option></select></div>
+        <div><label class="muted">申请金额（元）</label><input id="p_amt" type="number" value="120000"></div>
+        <div><label class="muted">每组样本量</label><input id="p_n" type="number" value="20"></div>
+      </div>
+      <div class="row"><button id="apply" class="primary">应用并重跑</button>
+        <button id="onlysave">仅更新参数</button></div>
+      <div class="muted" style="margin-top:10px" id="envTag"></div>
+      <details style="margin-top:10px"><summary>工具层能力（MCP tools/list）</summary>
+        <table><thead><tr><th>工具</th><th>说明</th></tr></thead><tbody id="toolTbl"></tbody></table></details>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>任务执行过程（实时）</h2>
+    <ul class="steps" id="steps"><li><span class="st"></span><div class="muted">尚未下发任务</div></li></ul>
+    <div class="muted" style="margin-top:8px" id="taskMeta"></div>
+  </div>
+
+  <div class="card">
+    <h2>结果</h2>
+    <div id="resultBox" class="muted">运行后展示。</div>
+  </div>
+
+  <div class="card"><details><summary>最近一次完整结果 JSON</summary><pre id="raw">—</pre></details></div>
+  <div class="muted" style="text-align:center;margin-top:18px" id="foot"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const j=(u,o)=>fetch(u,o).then(r=>r.json());
+const esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const money=v=>{if(v==null)return '—';const n=Number(v);const s=Math.abs(n).toFixed(2).split('.');
+  return (n<0?'-':'')+s[0].replace(/\B(?=(\d{3})+(?!\d))/g,',')+'.'+s[1];};
+const f3=v=>Number(v).toFixed(3);
+let SID='s-'+Math.random().toString(16).slice(2,10);
+let CUR=null, STEPS=[], TOOLS=[];
+
+function say(who,text,cls){const d=document.createElement('div');d.className='msg '+(who==='me'?'me':'');
+  d.innerHTML='<div class="b '+(cls||'')+'">'+esc(text)+'</div>';$('chat').appendChild(d);$('chat').scrollTop=1e9;}
+
+async function health(){
+  const h=await j('/api/health');
+  $('envTag').innerHTML='传输 '+esc(h.mcp_transport)+' ｜ 工具 '+h.tools+' 个 ｜ 千问：'+
+    (h.qwen&&h.qwen.active?'<span class="badge ok">已配置</span>':'<span class="badge warn">未配置→本地编排兜底</span>')+
+    ' ｜ 数据库：'+(h.db&&h.db.ok?'<span class="badge ok">connected</span>':'<span class="badge err">unavailable</span>');
+  $('agentTag').innerHTML=h.qwen&&h.qwen.active?'编排：千问办公':'编排：本地 planner（千问未配置，工具层同一套）';
+  const p=h.params_schema||{};
+  $('p_ind').innerHTML=(p.industry?p.industry.enum:['制造业','零售业','建筑业','科技服务业'])
+    .map(k=>'<option value="'+k+'">'+k+'</option>').join('');
+  $('foot').textContent='协议 MCP '+esc((h.mcp_server||{}).version||'')+' ｜ 会话 '+SID;
+  return h;
+}
+async function tools(){const r=await j('/api/tools');TOOLS=r.tools||[];
+  $('toolTbl').innerHTML=TOOLS.map(t=>'<tr><td class="mono">'+esc(t.name)+'</td><td class="muted">'+esc(t.description||'')+'</td></tr>').join('');}
+
+function drawSteps(){
+  const ul=$('steps');ul.innerHTML='';
+  if(!STEPS.length){ul.innerHTML='<li><span class="st"></span><div class="muted">尚未下发任务</div></li>';return;}
+  STEPS.forEach(s=>{const li=document.createElement('li');
+    li.innerHTML='<span class="st '+s.status+'"></span><div><b>'+esc(s.tool)+'</b>　<span class="muted">'+esc(s.desc||'')+
+      '</span>'+(s.error?'<div class="badge err">'+esc(s.error)+'</div>':'')+'</div>';
+    ul.appendChild(li);});
+}
+
+function setLamp(lv,why){const L=$('lamp');
+  L.className='dotlamp'+(lv?' lamp-'+lv:'');L.textContent=lv||'待评估';
+  $('lvl').textContent=lv?('当前预警：'+lv):'尚未运行';
+  $('lvlwhy').textContent=why||'';}
+
+function renderRisk(r){
+  const fin=r['最终等级']||{},f=r['融合判定']||{},b=r['缓冲判定']||{};
+  setLamp(fin['等级'],'三层融合 '+f['等级']+'（取严：'+(fin['取严来源']||'')+'）');
+  $('q').textContent=f3(r['第一层']['Q']);$('d').textContent=f3(r['第二层']['D']);$('p').textContent=f3(r['第三层']['P']);
+  const st=(r['压力测试']||{}).场景结果||[];const w=(r['压力测试']||{}).最坏情况||{};
+  $('resultBox').innerHTML=
+   '<div class="kv"><div class="k"><div class="lab">最终等级</div><div class="val">'+esc(fin['等级'])+'</div></div>'+
+   '<div class="k"><div class="lab">缓冲倍数</div><div class="val">'+f3(b['缓冲倍数'])+'</div></div>'+
+   '<div class="k"><div class="lab">期末现金</div><div class="val">'+money((r['现金流事实']||{}).期末现金)+'</div></div>'+
+   '<div class="k"><div class="lab">月均经营性流出 M</div><div class="val">'+money((r['现金流事实']||{}).月均经营性流出M)+'</div></div></div>'+
+   '<h3 style="margin-top:12px">压力测试</h3><table><thead><tr><th>场景</th><th class="num">缺口</th>'+
+   '<th class="num">冲击后缓冲</th><th class="num">倍数</th><th>等级</th></tr></thead><tbody>'+
+   st.map(s=>'<tr><td>'+esc(s['场景'])+'</td><td class="num">'+money(s['缺口'])+'</td><td class="num">'+
+     money(s['冲击后缓冲'])+'</td><td class="num"><b>'+f3(s['缓冲倍数'])+'</b></td><td>'+
+     (s['等级']==='红灯'?'<span class="badge err">红灯</span>':s['等级']==='黄灯'?'<span class="badge warn">黄灯</span>':'<span class="badge ok">绿灯</span>')+
+     '</td></tr>').join('')+'</tbody></table>'+
+   '<div class="muted" style="margin-top:8px">最坏：'+esc(w['场景'])+'（'+f3(w['缓冲倍数'])+'，'+esc(w['等级'])+'）｜审批：'+esc((r['分级审批']||{}).审批人)+'</div>';
+}
+function renderGeneric(intent,r){
+  if(intent&&intent.indexOf('risk.assess')>=0&&r['第一层'])return renderRisk(r);
+  if(r&&r['记录']){
+    setLamp(r['记录'].map(x=>x.lamp).find(l=>l==='红灯')||r['记录'].map(x=>x.lamp).find(l=>l==='黄灯')||'绿灯','三态追踪结果');
+    $('resultBox').innerHTML='<table><thead><tr><th>对象</th><th class="num">应收</th><th class="num">已验证到账</th>'+
+     '<th class="num">覆盖率</th><th class="num">逾期天数</th><th>状态</th></tr></thead><tbody>'+
+     r['记录'].map(x=>'<tr><td class="mono">'+esc(x.object_ref)+'</td><td class="num">'+money(x.receivable)+'</td>'+
+      '<td class="num">'+money(x['已验证到账'])+'</td><td class="num">'+f3(x.verified_ratio)+'</td>'+
+      '<td class="num">'+x.overdue_days+'</td><td><span class="badge '+
+      (x.state==='已化解'?'ok':x.state==='已恶化'?'err':'warn')+'">'+esc(x.state)+'</span></td></tr>').join('')+
+     '</tbody></table>';
+    if(r['记录'][0]){$('resultBox').innerHTML+='<div class="muted" style="margin-top:8px">依据：'+esc(r['记录'][0]['依据'])+'</div>';}
+    return;
+  }
+  if(r&&r.batch_id!==undefined){
+    setLamp(r.blocked?'红灯':'绿灯',r.blocked?'清洗批次被卡住（存在 ERROR 级异常）':'清洗通过');
+    $('resultBox').innerHTML='<div class="kv"><div class="k"><div class="lab">批次ID</div><div class="val mono">'+esc(r.batch_id)+'</div></div>'+
+     '<div class="k"><div class="lab">总条数</div><div class="val">'+r.total_items+'</div></div>'+
+     '<div class="k"><div class="lab">通过</div><div class="val">'+r.passed_items+'</div></div>'+
+     '<div class="k"><div class="lab">异常条数</div><div class="val">'+r.anomaly_count+'</div></div>'+
+     '<div class="k"><div class="lab">是否卡住</div><div class="val">'+(r.blocked?'是':'否')+'</div></div></div>'+
+     '<h3 style="margin-top:12px">命中明细</h3><table><thead><tr><th>规则</th><th>表</th><th class="num">行</th><th>级别</th><th>说明</th></tr></thead><tbody>'+
+     (r.items||[]).map(i=>'<tr><td class="mono">'+esc(i.rule_code)+'</td><td>'+esc(i.sheet)+'</td><td class="num">'+i.row_no+
+      '</td><td><span class="badge '+(i.severity==='ERROR'?'err':'warn')+'">'+esc(i.severity)+'</span></td>'+
+      '<td class="muted">'+esc(i.message)+'</td></tr>').join('')+'</tbody></table>';
+    return;
+  }
+  setLamp(null,'');
+  $('resultBox').innerHTML='<pre>'+esc(JSON.stringify(r,null,2))+'</pre>';
+}
+
+function connect(){
+  const es=new EventSource('/api/events?session_id='+SID);
+  es.onopen=()=>{$('conn').className='dot on';$('connTxt').textContent='事件流已连接（SSE 实时）';};
+  es.onerror=()=>{$('conn').className='dot';$('connTxt').textContent='事件流断开，正在重连…';};
+  es.onmessage=e=>{const v=JSON.parse(e.data);onEvent(v);};
+}
+function onEvent(v){
+  if(v.type==='hello'){return;}
+  if(v.type==='task.created'){CUR=v.task_id;STEPS=[];drawSteps();
+    $('taskMeta').textContent='任务 '+v.task_id+' ｜ 意图 '+(v.intent_name||v.intent)+' ｜ 编排 '+(v.agent||'');
+    say('sys','已创建任务 '+v.task_id+'（'+(v.intent_name||'')+'），编排来源：'+(v.agent||''),'sys');return;}
+  if(v.type==='plan.ready'){STEPS=v.steps.map(s=>({...s,status:'pending'}));drawSteps();return;}
+  if(v.type==='step.started'){const s=STEPS.find(x=>x.id===v.step_id);if(s)s.status='running';drawSteps();return;}
+  if(v.type==='step.done'){const s=STEPS.find(x=>x.id===v.step_id);
+    if(s){s.status=v.error?'failed':'done';}drawSteps();
+    if(v.result)renderGeneric(v.intent||'',v.result);return;}
+  if(v.type==='agent.message'){say('agent','【'+v.source+'】'+v.text,'agent');
+    if(v.fallback_reason)say('sys','降级原因：'+v.fallback_reason,'sys');return;}
+  if(v.type==='task.done'){renderGeneric(v.intent||'',v.result);
+    $('raw').textContent=JSON.stringify(v.result,null,2);
+    say('sys','任务完成，灯色：'+(v.lamp||'—'),'sys');return;}
+  if(v.type==='task.failed'){say('sys','任务失败：'+v.error,'sys');return;}
+  if(v.type==='task.state'){$('taskMeta').textContent='任务状态：'+(v.state_cn||v.state)+
+    (v.reason?'（'+v.reason+'）':'');return;}
+  if(v.type==='params.accepted'){say('sys','参数已更新：'+JSON.stringify(v.params),'sys');return;}
+}
+
+async function send(text){
+  if(!text)return;say('me',text);
+  const r=await j('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({session_id:SID,text:text,params:curParams()})});
+  if(r.error){say('sys','下发失败：'+r.error,'sys');return;}
+  if(r.plan&&r.plan.reply)say('agent',r.plan.reply,'agent');
+  if(r.plan&&r.plan.fallback_reason)say('sys','降级原因：'+r.plan.fallback_reason,'sys');
+}
+function curParams(){return {industry:$('p_ind').value,scenario:$('p_scn').value,
+  amount:Number($('p_amt').value||0),n_per_group:Number($('p_n').value||20)};}
+$('send').onclick=()=>{const t=$('txt').value.trim();$('txt').value='';send(t);};
+$('txt').onkeydown=e=>{if(e.key==='Enter')$('send').click();};
+document.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>send(b.dataset.t));
+$('apply').onclick=async()=>{const r=await j('/api/params',{method:'POST',
+  headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:SID,params:curParams(),rerun:true,text:'按新参数重新评估'})});
+  if(r.error)say('sys','重跑失败：'+r.error,'sys');};
+$('onlysave').onclick=async()=>{await j('/api/params',{method:'POST',
+  headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:SID,params:curParams(),rerun:false})});};
+$('stop').onclick=async()=>{await j('/api/cancel',{method:'POST',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({session_id:SID})});};
+
+(async()=>{await health();await tools();connect();send('跑一遍三层风控评估');})();
+</script></body></html>

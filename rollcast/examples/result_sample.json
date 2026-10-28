@@ -1,0 +1,288 @@
+{
+  "schema": "rollcast-run.v1",
+  "run_id": "rc-64987b19f1d14759",
+  "config": {
+    "draws": 5000,
+    "seed": 42,
+    "block_length": 4,
+    "horizon": 13,
+    "detect_seasonality": true,
+    "max_period": 26,
+    "min_strength": 0.3,
+    "debias": "auto",
+    "alpha": 0.05,
+    "warmup": 26,
+    "window": null,
+    "max_runtime_seconds": 300,
+    "retries": 3,
+    "retry_backoff_seconds": 2.0,
+    "persist": false,
+    "dry_run": false
+  },
+  "config_fingerprint": "40050b848d5aa46b",
+  "status": "calculated",
+  "external_action_executed": false,
+  "input_sha256": "ec8df7ba659f8a7c7f654b8600bed88f1670ccc01c715fcde92159ef6433f71d",
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "facts": {
+      "history_weeks": 104,
+      "unit": "万元",
+      "origins": 91,
+      "cash_available": 900.0,
+      "initial_capacity": 1000.0
+    }
+  },
+  "backtest": {
+    "status": "completed",
+    "origins": 65,
+    "mae": 5.5608707006889935,
+    "rmse": 6.386517152677464,
+    "mean_terminal_drift": 0.5345112424685097,
+    "max_abs_terminal_drift": 17.017866326270138,
+    "coverage": 0.8923076923076924,
+    "sample": [
+      {
+        "origin_index": 26,
+        "origin": "W026",
+        "block": 4,
+        "rationale": "configured block_length=4 already matches detected period",
+        "seasonality": [
+          "receipts: 4-week cycle at r=-0.526",
+          "payments: 4-week cycle at r=-0.538"
+        ],
+        "bias": {
+          "mode": "auto",
+          "removed": [
+            -0.5750016700444193,
+            -0.05666431499968373
+          ],
+          "p_values": [
+            0.5353466898819519,
+            0.9127583004940999
+          ],
+          "structural": [
+            false,
+            false
+          ],
+          "alpha": 0.05,
+          "note": "receipts: mean -0.5750 not distinguishable from zero (p=0.5353), removed; payments: mean -0.0567 not distinguishable from zero (p=0.9128), removed"
+        }
+      },
+      {
+        "origin_index": 27,
+        "origin": "W027",
+        "block": 4,
+        "rationale": "configured block_length=4 already matches detected period",
+        "seasonality": [
+          "receipts: 4-week cycle at r=-0.589",
+          "payments: 3-week cycle at r=-0.551"
+        ],
+        "bias": {
+          "mode": "auto",
+          "removed": [
+            -0.7634563082339698,
+            -0.15038182740644612
+          ],
+          "p_values": [
+            0.4041371483421162,
+            0.7666644787679875
+          ],
+          "structural": [
+            false,
+            false
+          ],
+          "alpha": 0.05,
+          "note": "receipts: mean -0.7635 not distinguishable from zero (p=0.4041), removed; payments: mean -0.1504 not distinguishable from zero (p=0.7667), removed"
+        }
+      },
+      {
+        "origin_index": 28,
+        "origin": "W028",
+        "block": 4,
+        "rationale": "configured block_length=4 already matches detected period",
+        "seasonality": [
+          "receipts: 4-week cycle at r=-0.639",
+          "payments: 3-week cycle at r=-0.587"
+        ],
+        "bias": {
+          "mode": "auto",
+          "removed": [
+            -0.9205808760893657,
+            -0.20650879461952226
+          ],
+          "p_values": [
+            0.30564098004456375,
+            0.6745830730002542
+          ],
+          "structural": [
+            false,
+            false
+          ],
+          "alpha": 0.05,
+          "note": "receipts: mean -0.9206 not distinguishable from zero (p=0.3056), removed; payments: mean -0.2065 not distinguishable from zero (p=0.6746), removed"
+        }
+      },
+      {
+        "origin_index": 29,
+        "origin": "W029",
+        "block": 4,
+        "rationale": "configured block_length=4 already matches detected period",
+        "seasonality": [
+          "receipts: 4-week cycle at r=-0.636",
+          "payments: 3-week cycle at r=-0.605"
+        ],
+        "bias": {
+          "mode": "auto",
+          "removed": [
+            -0.8945709596853717,
+            -0.16257414317281718
+          ],
+          "p_values": [
+            0.30218156331787427,
+            0.732809120495852
+          ],
+          "structural": [
+            false,
+            false
+          ],
+          "alpha": 0.05,
+          "note": "receipts: mean -0.8946 not distinguishable from zero (p=0.3022), removed; payments: mean -0.1626 not distinguishable from zero (p=0.7328), removed"
+        }
+      },
+      {
+        "origin_index": 30,
+        "origin": "W030",
+        "block": 4,
+        "rationale": "configured block_length=4 already matches detected period",
+        "seasonality": [
+          "receipts: 4-week cycle at r=-0.553",
+          "payments: 3-week cycle at r=-0.617"
+        ],
+        "bias": {
+          "mode": "auto",
+          "removed": [
+            -0.5885087485642406,
+            -0.09937054722452786
+          ],
+          "p_values": [
+            0.5076484516836759,
+            0.8304304325107825
+          ],
+          "structural": [
+            false,
+            false
+          ],
+          "alpha": 0.05,
+          "note": "receipts: mean -0.5885 not distinguishable from zero (p=0.5076), removed; payments: mean -0.0994 not distinguishable from zero (p=0.8304), removed"
+        }
+      }
+    ]
+  },
+  "forecast": {
+    "unit": "万元",
+    "horizon": 13,
+    "block_used": 7,
+    "block_rationale": "aligned block_length 4 -> 7 (detected 7-week cycle)",
+    "seasonality": [
+      "receipts: 7-week cycle at r=+0.733",
+      "payments: 7-week cycle at r=+0.698"
+    ],
+    "bias": {
+      "mode": "auto",
+      "removed": [
+        -0.3152770990786204,
+        -0.12506248704222475
+      ],
+      "p_values": [
+        0.5080117217809755,
+        0.655725836939758
+      ],
+      "structural": [
+        false,
+        false
+      ],
+      "alpha": 0.05,
+      "note": "receipts: mean -0.3153 not distinguishable from zero (p=0.5080), removed; payments: mean -0.1251 not distinguishable from zero (p=0.6557), removed"
+    },
+    "initial_capacity": 1000.0,
+    "mean_capacity_path": [
+      1000.0,
+      999.88,
+      999.87,
+      999.89,
+      999.93,
+      999.98,
+      1000.04,
+      1000.04,
+      1000.02,
+      999.98,
+      1000.0,
+      1000.05,
+      1000.06,
+      1000.02
+    ],
+    "planned_cash_path": [
+      900.0,
+      900.0,
+      900.0,
+      900.0,
+      900.0,
+      900.0,
+      900.0,
+      900.0,
+      900.0,
+      900.0,
+      900.0,
+      900.0,
+      900.0,
+      900.0
+    ],
+    "probability_shortfall_scenario": 0.0,
+    "monte_carlo_standard_error": 0.0,
+    "gap_p95": 0.0,
+    "gap_cvar95": 0.0,
+    "mean_gap": 0.0,
+    "median_gap": 0.0,
+    "mean_terminal_capacity": 1000.01717,
+    "monte_carlo": {
+      "draws": 5000,
+      "seed": 42,
+      "standard_error": 0.0
+    }
+  },
+  "trace": [
+    {
+      "stage": "validate",
+      "elapsed_ms": 9.66,
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "input_sha256": "ec8df7ba659f8a7c"
+    },
+    {
+      "stage": "features",
+      "elapsed_ms": 10.14,
+      "history_weeks": 104,
+      "initial_capacity": 1000.0
+    },
+    {
+      "stage": "backtest",
+      "elapsed_ms": 351.46,
+      "status": "completed",
+      "mae": 5.5608707006889935,
+      "rmse": 6.386517152677464
+    },
+    {
+      "stage": "forecast",
+      "elapsed_ms": 357.08,
+      "block": 7,
+      "draws": 5000,
+      "p_shortfall": 0.0,
+      "gap_p95": 0.0
+    }
+  ],
+  "duration_ms": 357.11
+}

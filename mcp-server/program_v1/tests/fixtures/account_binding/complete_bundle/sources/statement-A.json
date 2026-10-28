@@ -1,0 +1,31 @@
+{
+  "schema_version": "mfg-balance-source-records.v1",
+  "tenant_id": "fixture-tenant",
+  "company_id": "fixture-manufacturing",
+  "period": "2026-08",
+  "source_revision": "fixture-source-v1",
+  "run_id": "fixture-run-202608",
+  "origin": "offline_fixture",
+  "source_class": "bank_statement_extract",
+  "derivation": "registered_independent_actual",
+  "records": [
+    {
+      "source_record_id": "A-opening",
+      "account_id": "fixture-account-A",
+      "kind": "opening",
+      "amount": "60000.00",
+      "unit": "CNY",
+      "as_of": "2026-07-31",
+      "source_location": "合成账单:A-opening"
+    },
+    {
+      "source_record_id": "A-closing",
+      "account_id": "fixture-account-A",
+      "kind": "closing",
+      "amount": "90000.00",
+      "unit": "CNY",
+      "as_of": "2026-08-31",
+      "source_location": "合成账单:A-closing"
+    }
+  ]
+}

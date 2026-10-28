@@ -1,0 +1,10 @@
+[Unit]
+Description=Cashflow Risk Agent 深度自愈检查
+# systemd 的 Restart=always 只能覆盖"进程退出"；
+# 本 watchdog 用于覆盖"进程还活着但端口不响应"的假死场景。
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/opt/cashflow-agent/current/scripts/healthcheck.sh
+# 退出码非 0 时由 timer 决定是否重启主服务（逻辑写在脚本内，便于审计）

@@ -1,0 +1,11 @@
+[Unit]
+Description=Probe the cashflow workbench stack every 5 minutes
+Documentation=file:///opt/cashflow/DEPLOY.md
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Persistent=false
+
+[Install]
+WantedBy=timers.target

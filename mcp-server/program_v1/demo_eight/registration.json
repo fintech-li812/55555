@@ -1,0 +1,27 @@
+{
+  "schema_version": "mfg-synthetic-eight-registration.v1",
+  "source_id": "synthetic_eight_sheet_v1",
+  "data_type": "SYNTHETIC",
+  "context": {
+    "tenant_id": "fixture-tenant",
+    "company_id": "fixture-manufacturing",
+    "period": "2026-08",
+    "source_revision": "synthetic-eight-evidence-v1",
+    "run_id": "synthetic-eight-binding-v1"
+  },
+  "workbook_sha256": "05b643cfa66c07fd51533e5ab7581e250ff480f26f6db6ab05963715d769ad4d",
+  "approved_files": {
+    "account_trust.json": "5848ef3f17e0078031bdd4bf3298c905e6a1766b8865d5969621406e6369b8ab",
+    "cash_trust.json": "e40a232bdbf96c29ee7ae9b5b1608ee7bde48aa320c92f5aa45d50ecc2701c71",
+    "account/balances.json": "efcc64d42499af1727ac2ce709178af0b492d4191fc297043437f953f1ecab89",
+    "account/context.json": "7776d3abed552d02b6cd41e619c8cb2625e39f72f6387b64b7cd53a1cecb5f98",
+    "account/evidence_manifest.json": "6568298ab8399179b9dbb6fb246b801666485cc37e36f1dfd6170a5447b52926",
+    "account/scope.json": "b3a900448e320692a0ba8ab07c284499916a5bbbcf31f621724687bc575eff4c",
+    "cash/decisions.json": "ff3b17359e321a690b0f2f6eb774bbb45f4c4a662ae6d05c4f38e945e7304f6d",
+    "cash/events.json": "13bb74dd41a0fd9b4ab95d3139e66e9173d80d41bf397992101c82d1d795e45e",
+    "cash/scope_binding.json": "990143d2372add7a07eba645887e0275e42682a052cf6d1a2ac5ed31e08ba90f",
+    "cash/source_registry.json": "3ffac333e2069649730ec000beae4a3bd756239f725b46082616822acb07f50f",
+    "account/sources/closing.json": "25a87ea00112f930fe2aa3d5893779258aaa544a438e87f03f87da52da0ddf37",
+    "account/sources/opening.json": "e1ebef5574a4389ef12f278f98405caf631adbd982d78f5791af46028be8af2f"
+  }
+}

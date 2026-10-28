@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "name": "demo_input.json",
+      "sha256": "2cfacf0509dcafc60b5fd495122be411ac287b680f79ef9adb98fc78ccf23a65"
+    },
+    {
+      "name": "demo_result.json",
+      "sha256": "f9ba68cf271172fdd62fcbece1a22452b6b1fd951e7fc67bca6c532fe6d07af0"
+    },
+    {
+      "name": "panel_train.py",
+      "sha256": "4d3797420478404ba3aaec3ffd0580687f5b4f4db8658cf46ddcb94af7800fd2"
+    },
+    {
+      "name": "README.md",
+      "sha256": "9ac8aec470bfcddf795ac67085749e8cfd087c3b03277d73f8e556814f1b4bde"
+    },
+    {
+      "name": "requirements.txt",
+      "sha256": "b663c4285fa947724f5c5cd655f3c2c605114037287d5f4eb1ebb0b8e2676f95"
+    },
+    {
+      "name": "risk_model.py",
+      "sha256": "e22172c57cc2de81524c97ffc3f786e13c69822c0717ceeb0ca4529513d65056"
+    },
+    {
+      "name": "test_risk_model.py",
+      "sha256": "1d2bae62b575f0c1fa4c4bfc51339c9e5fac24c562077c4388751a415230a03f"
+    },
+    {
+      "name": "三层风控模型_v2_修订说明.md",
+      "sha256": "13cd7ed731010f641d28cab696600428506e0cbe440b93a5566db2366f126ceb"
+    },
+    {
+      "name": "测试日志.txt",
+      "sha256": "456ac9c8adbee3a4b2c020c3e84b9091b7a6b2c5961e5a3a9287de1a414bd56e"
+    },
+    {
+      "name": "验证结果_v2.json",
+      "sha256": "e18e2d7341e8eade1fe8e7d674f708c510a675b1873bd4c67dff4e5d78e37c41"
+    }
+  ]
+}

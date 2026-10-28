@@ -1,0 +1,10 @@
+{
+  "manufacturing_sample_v1": {
+    "state": "not_registered",
+    "source_sha256": "7e32b1eca8cfe892bd0ee96dfe257b03965018e607fc0e8cbaface33c13d0a3b",
+    "bundle": null,
+    "trust_file": null,
+    "cash_bundle": null,
+    "cash_trust_file": null
+  }
+}

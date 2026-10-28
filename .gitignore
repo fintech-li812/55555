@@ -1,0 +1,85 @@
+# =============================================================================
+# 本项目仓库为公开仓库，以下规则按「泄密风险」而非「文件类型」组织。
+# 新增任何忽略规则时，请在此注明原因，便于后人判断是否可以放开。
+# =============================================================================
+
+# ---- 1. 凭据与密钥（最高优先级，绝不可提交）----------------------------------
+# deploy/.env 内含 MySQL 账号口令、MCP 鉴权令牌、钉钉 Webhook 等。
+# 需要配置项时提交 deploy/env.template（只含键名，值为空）。
+.env
+.env.*
+*.env
+!.env.template
+
+# 服务器 SSH 登录口令的临时缓存
+.sshpw
+*.sshpw
+
+# TLS 私钥与证书（MySQL 自建 CA、nginx 证书）
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+
+# ---- 2. 数据库运行时数据 -----------------------------------------------------
+# MySQL 数据目录：约 205MB，含真实业务数据与 InnoDB 表空间，既涉密又无版本价值。
+# 建表语句请使用 sql/init.sql、sql/v8_schema.sql、sql/v8_accountability_schema.sql。
+.mysqldata/
+deploy/.mysqldata/
+
+# InnoDB undo 表空间必须与 datadir 分离，否则启动报
+# "Can't create UNDO tablespace ... already exists"。这两个目录都是运行时二进制，
+# 且进程被强杀后残留会让下次起不来，由启动脚本每次自动归档重建，无版本价值。
+# （原始 undo 的一次性存档放在 .undo-backup-20261028/，同样忽略。）
+deploy/.mysqlundo/
+deploy/.undo-backup/
+.mysqlundo/
+.undo-backup*/
+.undo-backup-20261028/
+*.ibd
+*.ibdata1
+ib_logfile*
+undo_00*
+
+# ---- 3. 运行产物与日志 -------------------------------------------------------
+# 每次运行的 stdout/stderr，按时间戳分目录，属生成物
+outbox/runtime/
+*.log
+logs/
+
+# ---- 4. Python 缓存与虚拟环境 ------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+build/
+dist/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# ---- 5. 编辑器与操作系统 -----------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- 6. 临时与备份文件 -------------------------------------------------------
+*.tmp
+*.temp
+*~
+
+# ---- 7. 前端离线快照与本机运行快照 -------------------------------------------
+# .snapshot/ 由 scripts/ 下的导出脚本在运行时生成，供页面在后端不可达时降级显示，
+# 属生成物，不进仓库。生成方式见 docs/operations/前后端联通方案_20261028.md。
+.snapshot/

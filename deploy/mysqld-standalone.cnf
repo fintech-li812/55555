@@ -1,0 +1,16 @@
+[mysqld]
+# Standalone instance used only to prove the storage path works on this machine.
+# It never touches the existing MySQL84 service (different datadir and port).
+datadir=D:/CashflowRiskWorkbench/deploy/.mysqldata
+port=3307
+bind-address=127.0.0.1
+# Undo 表空间必须与 datadir 分开：放在 datadir 内时，InnoDB 启动会尝试重建
+# innodb_undo_001/002 并撞上同名文件，报 "Can't create UNDO tablespace ... already exists"。
+innodb-undo-directory=D:/CashflowRiskWorkbench/deploy/.mysqlundo
+log-error=D:/CashflowRiskWorkbench/deploy/.mysqldata/server.err
+pid-file=D:/CashflowRiskWorkbench/deploy/.mysqldata/standalone.pid
+mysqlx=0
+skip-name-resolve=0
+# Unique named pipe so this instance does not collide with the MySQL84 service.
+socket=WORKBENCH3307
+enable-named-pipe

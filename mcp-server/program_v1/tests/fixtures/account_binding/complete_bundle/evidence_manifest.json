@@ -1,0 +1,27 @@
+{
+  "schema_version": "mfg-balance-evidence-manifest.v1",
+  "tenant_id": "fixture-tenant",
+  "company_id": "fixture-manufacturing",
+  "period": "2026-08",
+  "source_revision": "fixture-source-v1",
+  "run_id": "fixture-run-202608",
+  "origin": "offline_fixture",
+  "sources": [
+    {
+      "evidence_id": "fixture-statement-A",
+      "path": "sources/statement-A.json",
+      "sha256": "6abfefd0df1442fadf00b58613bed9a723f9a863235b379f69d7266d04bb40ed",
+      "source_class": "bank_statement_extract",
+      "independence": "operator_approved_independent_actual",
+      "approval_ref": "SYNTHETIC-APPROVAL-A"
+    },
+    {
+      "evidence_id": "fixture-statement-B",
+      "path": "sources/statement-B.json",
+      "sha256": "986be9088f56a4531873d35a413ae049455a224cbcfb71be50c5c898170d7fcb",
+      "source_class": "bank_statement_extract",
+      "independence": "operator_approved_independent_actual",
+      "approval_ref": "SYNTHETIC-APPROVAL-B"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": "mfg-program-build-validation.v1",
+  "date": "2026-10-26",
+  "tests_passed": 37,
+  "test_locations": [
+    "candidate",
+    "installed_main_directory"
+  ],
+  "counts_not_added": true,
+  "dependencies_matching": 31,
+  "mcp_tool_count": 8,
+  "mcp_readonly_successful_calls": 7,
+  "qa_rows_before": 20,
+  "qa_rows_after": 20,
+  "successful_new_save_verified": false,
+  "qwen_new_skill_installed": false,
+  "qwen_new_connector_selected": false,
+  "browser_cases": [
+    "normal_calculation",
+    "balance_difference_save_blocked",
+    "original_source_blocked_and_previous_result_cleared"
+  ],
+  "production_deployed": false,
+  "real_business_validated": false
+}

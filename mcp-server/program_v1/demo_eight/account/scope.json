@@ -1,0 +1,22 @@
+{
+  "schema_version": "mfg-account-scope.v1",
+  "tenant_id": "fixture-tenant",
+  "company_id": "fixture-manufacturing",
+  "period": "2026-08",
+  "source_revision": "synthetic-eight-evidence-v1",
+  "run_id": "synthetic-eight-binding-v1",
+  "origin": "offline_fixture",
+  "unit": "CNY",
+  "scope_confirmed": true,
+  "reporting_entity_id": "synthetic-entity",
+  "opening_as_of": "2026-07-31",
+  "closing_as_of": "2026-08-31",
+  "accounts": [
+    {
+      "account_id": "demo-bank-001",
+      "reporting_entity_id": "synthetic-entity",
+      "currency": "CNY",
+      "included": true
+    }
+  ]
+}

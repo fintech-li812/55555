@@ -1,0 +1,56 @@
+# =============================================================================
+# 非敏感配置。部署时复制到 /etc/cashflow-agent/config.yaml（0640 root:cfagent）
+# 口令 / 令牌 / Webhook 一律不写在这里，只放 /etc/cashflow-agent/agent.env
+# =============================================================================
+
+server:
+  host: 127.0.0.1      # 只听本机；公网访问必须走 Nginx 反代
+  port: 8090
+
+database:
+  host: 127.0.0.1
+  port: 3306
+  name: cf_workbench
+  # user 与 password 来自环境变量 CF_DB_USER / CF_DB_PASSWORD
+  connect_timeout: 5
+  retry_times: 3
+  retry_backoff: 1.5    # 秒，指数退避
+  table_prefix: agent_
+
+# ---------- 周期 ----------
+schedule:
+  inspect_interval_minutes: 60   # 巡检间隔
+  weekly_day: 1                  # 1=周一 … 7=周日
+  weekly_hour: 9
+  weekly_minute: 0
+
+# ---------- 判定阈值（按业务口径调整）----------
+thresholds:
+  net_flow_floor: 0.0            # 净现金流低于此值 → 高危
+  buffer_ratio_warn: 0.15        # 期末/流出 ≤ 此值 → 预警
+  buffer_ratio_high: 0.08        # ≤ 此值 → 高危
+  overdue_ratio_warn: 0.20       # 逾期金额占比 ≥ 此值 → 预警
+  overdue_ratio_high: 0.35       # ≥ 此值 → 高危
+
+# ---------- 推送通道 ----------
+# type: none（只留痕） / dingtalk / webhook
+# 凭据不在此文件：DINGTALK_WEBHOOK、DINGTALK_SECRET、AGENT_WEBHOOK_URL、AGENT_WEBHOOK_TOKEN
+channels:
+  type: none
+
+# ---------- 数据源表（位于 cf_workbench）----------
+# 表不存在时服务会如实返回"数据源缺失"，不会编造数据
+sources:
+  cashflow_table: mfg_cashflow_runs_v1
+  receivable_table: mfg_v8_tracking_v1
+  risk_table: mfg_v8_risk_log_v1
+
+# ---------- 路径 ----------
+paths:
+  log_dir: /var/log/cashflow-agent
+  state_dir: /var/lib/cashflow-agent
+
+logging:
+  level: INFO
+  max_bytes: 20971520     # 20MB 轮转
+  backup_count: 5

@@ -1,0 +1,103 @@
+{
+  "contract_version": "v1",
+  "engine_version": "manufacturing-program-arithmetic.v1",
+  "fields": [
+    "schema_version",
+    "data_type",
+    "tenant_id",
+    "company_id",
+    "period",
+    "unit",
+    "coverage",
+    "account_scope",
+    "opening_source",
+    "closing_source",
+    "operating_confirmed",
+    "investing_confirmed",
+    "financing_confirmed",
+    "opening",
+    "operating_inflow",
+    "operating_outflow",
+    "investing_inflow",
+    "investing_outflow",
+    "financing_inflow",
+    "financing_outflow",
+    "actual_closing"
+  ],
+  "money_fields": [
+    "opening",
+    "actual_closing",
+    "operating_inflow",
+    "operating_outflow",
+    "investing_inflow",
+    "investing_outflow",
+    "financing_inflow",
+    "financing_outflow"
+  ],
+  "producer": "python reference engine (read-only dump)",
+  "purpose": "language-agnostic fixture输入，供 Node 侧对拍；不含任何真实企业数据",
+  "sources": {
+    "program_demo_v1": {
+      "data": {
+        "account_scope": "synthetic-bank-001",
+        "actual_closing": "140000.00",
+        "closing_source": "synthetic-independent-closing-statement-20260831",
+        "company_id": "fixture-manufacturing",
+        "coverage": "full_cashflow",
+        "data_type": "SYNTHETIC",
+        "financing_confirmed": "true",
+        "financing_inflow": "0.00",
+        "financing_outflow": "10000.00",
+        "investing_confirmed": "true",
+        "investing_inflow": "0.00",
+        "investing_outflow": "10000.00",
+        "opening": "100000.00",
+        "opening_source": "synthetic-opening-statement-20260731",
+        "operating_confirmed": "true",
+        "operating_inflow": "130000.00",
+        "operating_outflow": "70000.00",
+        "period": "2026-08",
+        "schema_version": "mfg-program-input.v1",
+        "tenant_id": "fixture-tenant",
+        "unit": "CNY"
+      },
+      "input_sha256": "00613baa679620b938c009c20bb56f83baad14ef28bf5124b4db31dd5fdd9691",
+      "logical_name": "制造业_程序计算合成输入.xlsx",
+      "registry": {
+        "data_type": "SYNTHETIC",
+        "sha256": "00613baa679620b938c009c20bb56f83baad14ef28bf5124b4db31dd5fdd9691"
+      }
+    },
+    "program_difference_v1": {
+      "data": {
+        "account_scope": "synthetic-bank-001",
+        "actual_closing": "139000.00",
+        "closing_source": "synthetic-independent-closing-statement-20260831",
+        "company_id": "fixture-manufacturing",
+        "coverage": "full_cashflow",
+        "data_type": "SYNTHETIC",
+        "financing_confirmed": "true",
+        "financing_inflow": "0.00",
+        "financing_outflow": "10000.00",
+        "investing_confirmed": "true",
+        "investing_inflow": "0.00",
+        "investing_outflow": "10000.00",
+        "opening": "100000.00",
+        "opening_source": "synthetic-opening-statement-20260731",
+        "operating_confirmed": "true",
+        "operating_inflow": "130000.00",
+        "operating_outflow": "70000.00",
+        "period": "2026-08",
+        "schema_version": "mfg-program-input.v1",
+        "tenant_id": "fixture-tenant",
+        "unit": "CNY"
+      },
+      "input_sha256": "970b094f1e0e2c8b0bed860893dde9dde91c17b564519390100e44984c92eed6",
+      "logical_name": "制造业_余额差异合成输入.xlsx",
+      "registry": {
+        "data_type": "SYNTHETIC",
+        "sha256": "970b094f1e0e2c8b0bed860893dde9dde91c17b564519390100e44984c92eed6"
+      }
+    }
+  }
+}

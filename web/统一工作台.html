@@ -1,0 +1,1509 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="workbench-token" content="__CSRF_TOKEN__">
+<title>企业财务风险管控工作台 · 统一入口</title>
+<style>
+/* ==========================================================================
+   0. 设计令牌（全站唯一来源，各分区共用，杜绝各模块各自定义颜色）
+   ========================================================================== */
+:root{
+  --bg:#eef3f8; --ink:#18394e; --blue:#235ed4; --green:#1a7f5a;
+  --amber:#a06800; --red:#b83242; --line:#d4dfe9; --muted:#6b8298;
+  --card:#fff; --nav:#18394e; --navline:#446074; --navtext:#c3d2df;
+  --r:8px; --pad:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.65 "Segoe UI","Microsoft YaHei",sans-serif}
+button,select,input{font:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);
+  border-radius:5px;padding:8px 14px}
+button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+button:disabled{opacity:.42;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #7cacf8;outline-offset:2px}
+select,input{width:100%;padding:9px;border:1px solid #b5c6d6;background:#fff;
+  color:var(--ink);border-radius:4px}
+h1{font-size:25px;margin:0;font-weight:650}
+h2{font-size:17px;margin:0 0 12px;font-weight:650}
+h3{font-size:14px;margin:0 0 8px;font-weight:650;color:#3d5568}
+
+/* ==========================================================================
+   1. 骨架：左侧导航 + 右侧内容
+   ========================================================================== */
+.shell{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+aside{background:var(--nav);color:#fff;padding:30px 22px;display:flex;flex-direction:column;gap:22px}
+aside .brand{font-size:20px;font-weight:650;line-height:1.45}
+aside .brandsub{font-size:12.5px;color:var(--navtext);margin-top:6px}
+aside nav{display:flex;flex-direction:column;gap:2px}
+aside nav button{background:none;border:0;border-left:3px solid transparent;color:#c9dced;
+  text-align:left;padding:11px 12px;border-radius:0;font-size:14px;width:100%}
+aside nav button:hover{background:#20455c;color:#fff}
+aside nav button.on{background:#20455c;color:#fff;border-left-color:#5aa9f8;font-weight:600}
+aside nav button .n{display:block;font-size:11.5px;color:#89a6bd;margin-top:1px}
+aside nav button.on .n{color:#a9c9e6}
+aside footer{margin-top:auto;font-size:12px;color:#b4c8d8;line-height:1.55}
+main{padding:26px 34px 56px;max-width:1500px;width:100%;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;
+  margin-bottom:18px;flex-wrap:wrap}
+.top .sub{color:var(--muted);font-size:13px;margin-top:3px;max-width:760px}
+
+/* ==========================================================================
+   2. 通用组件
+   ========================================================================== */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:var(--pad) 20px;margin-bottom:14px}
+.muted{color:var(--muted);font-size:12.5px}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:12.5px}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.badge{display:inline-block;font-size:12px;padding:3px 9px;border-radius:3px;
+  border:1px solid var(--line);background:#eef3f9;color:var(--muted);white-space:nowrap}
+.badge.ok{background:#e6f4ee;border-color:#b6ddc9;color:var(--green)}
+.badge.warn{background:#fdf3e0;border-color:#e8cd9a;color:var(--amber)}
+.badge.err{background:#fbeaec;border-color:#efc2c8;color:var(--red)}
+.notice{background:#fff5df;border-left:4px solid var(--amber);padding:12px 16px;
+  color:#77500d;font-size:13px;border-radius:0 6px 6px 0;margin-bottom:14px}
+.notice.blue{background:#eaf2ff;border-left-color:var(--blue);color:#25406b}
+.notice.err{background:#fbeaec;border-left-color:var(--red);color:#8a2231}
+.notice.ok{background:#e9f6f0;border-left-color:var(--green);color:#126b52}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:#f7fafd;font-weight:600;font-size:12.5px;color:#3d5568}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tfoot td{font-weight:650;background:#f7fafd}
+.pre{background:#f8fafc;border:1px solid var(--line);border-radius:6px;padding:10px;
+  overflow:auto;max-height:240px;font-family:Consolas,monospace;font-size:12px;margin:8px 0 0;
+  white-space:pre-wrap;overflow-wrap:anywhere}
+details summary{cursor:pointer;font-size:13px;color:var(--blue);padding:6px 0}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.rowline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* 数字卡 */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.k{background:#fbfcfe;border:1px solid var(--line);border-radius:7px;padding:11px 13px}
+.k .lab{font-size:12px;color:var(--muted);margin-bottom:5px}
+.k .val{font-size:19px;font-weight:650;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.k.hl{background:#eaf2ff;border-color:#bcd4f5}
+.k.ok .val{color:var(--green)}
+.k.bad .val{color:var(--red)}
+/* 键值 */
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px 22px}
+.kv>div>span{display:block;font-size:12px;color:var(--muted);margin-bottom:2px}
+.kv>div>b{font-weight:600;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+/* 信号灯 */
+.lamp{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;color:#fff;font-size:14.5px;font-weight:700;flex:0 0 auto}
+.lamp.绿灯{background:var(--green)}.lamp.黄灯{background:var(--amber)}.lamp.红灯{background:var(--red)}
+.lamp.等待{background:#9fb0c0;font-size:13px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:#c3cfda}
+.dot.up{background:#1f9d78}.dot.down{background:#c8424f}
+/* 表单网格 */
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 16px;align-items:end}
+.formgrid label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+/* 两列/三列 */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+/* 数据流转提示（体现模块间联动） */
+.flowbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;
+  color:var(--muted);background:#f2f7fc;border:1px dashed #b9cde4;border-radius:6px;
+  padding:9px 13px;margin-bottom:14px}
+.flowbar b{color:var(--ink)}
+.flowbar .arrow{color:var(--blue);font-weight:700}
+
+/* ==========================================================================
+   3. 分区切换
+   ========================================================================== */
+.pane{display:none}
+.pane.on{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ==========================================================================
+   4. 响应式：窄屏时侧栏转为顶部横向标签
+   ========================================================================== */
+@media(max-width:1000px){
+  .shell{grid-template-columns:1fr}
+  aside{flex-direction:row;align-items:center;gap:14px;padding:10px 14px;
+    position:sticky;top:0;z-index:20;overflow:hidden}
+  aside .brand{font-size:15px;white-space:nowrap}
+  aside .brand br{display:none}
+  aside .brandsub,aside footer{display:none}
+  aside nav{flex-direction:row;gap:4px;overflow-x:auto;flex:1;
+    scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+  aside nav button{border-left:0;border-bottom:3px solid transparent;
+    padding:8px 11px;white-space:nowrap;width:auto}
+  aside nav button.on{border-left:0;border-bottom-color:#5aa9f8}
+  aside nav button .n{display:none}
+  main{padding:16px 14px 40px}
+  .g2,.g3{grid-template-columns:1fr}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(132px,1fr))}
+  .top h1{font-size:21px}
+}
+@media(max-width:560px){
+  .kv{grid-template-columns:1fr 1fr}
+  table{font-size:12.5px}
+  th,td{padding:6px 6px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ===================== 侧边导航 ===================== -->
+<aside>
+  <div>
+    <div class="brand">企业财务<br>风险管控工作台</div>
+    <div class="brandsub">统一入口 · 程序计算</div>
+  </div>
+  <nav id="nav">
+    <button data-tab="ov" class="on">总览<span class="n">全局状态与结论</span></button>
+    <button data-tab="cf">现金流计算<span class="n">八表核对 · 留档</span></button>
+    <button data-tab="rk">风险评估<span class="n">三层模型 · 压力测试</span></button>
+    <button data-tab="rc">留痕与回查<span class="n">记录 · 一致性校验</span></button>
+    <button data-tab="cn">后端控制台<span class="n">服务 · 接口 · MCP</span></button>
+  </nav>
+  <footer>
+    数据为隔离测试环境合成输入。<br>不代表真实企业，<br>操作不会触发付款或通知。
+  </footer>
+</aside>
+
+<main>
+<header class="top">
+  <div>
+    <h1 id="paneTitle">总览</h1>
+    <div class="sub" id="paneSub">各模块共享同一计算内核，现金流分区算出的结果会直接流转到风险评估。</div>
+  </div>
+  <div class="rowline">
+    <span class="badge" id="connBadge">正在检测后端</span>
+    <button id="btnConn">连接设置</button>
+  </div>
+</header>
+
+<!-- 连接设置（默认隐藏） -->
+<div class="card" id="connBox" hidden>
+  <h2>后端连接设置</h2>
+  <p class="muted">两个后端各自独立：主站（现金流计算/控制台）与 V8（三层风控）。留空表示与当前页面同源。</p>
+  <div class="formgrid" style="margin-top:10px">
+    <div><label for="cfgMain">主站根路径</label><input id="cfgMain" placeholder="留空=同源，如 /"></div>
+    <div><label for="cfgV8">V8 根路径</label><input id="cfgV8" placeholder="如 /v8"></div>
+  </div>
+  <div class="acts">
+    <button id="cfgSave" class="primary">保存并重连</button>
+    <button id="cfgReset">恢复默认</button>
+    <span class="muted" id="cfgMsg"></span>
+  </div>
+</div>
+
+<!-- 离线提示：无后端时如实说明，绝不伪装成真实数据 -->
+<div class="notice err" id="offlineBox" hidden>
+  <b>未连接后端</b> —— 当前展示的是<b>内置快照</b>（取自服务器真实运行结果，非实时调用）。
+  输入型操作（切换来源、改参数）不会改变结果。要真实计算，请部署到服务器或在本机启动对应服务后于上方填写根路径。
+</div>
+
+<!-- ===================== 分区 1：总览 ===================== -->
+<section class="pane on" id="pane-ov">
+  <div class="flowbar">
+    <b>数据流转</b>：
+    <span>① 现金流计算</span><span class="arrow">→</span>
+    <span>② 现金流事实（共享状态）</span><span class="arrow">→</span>
+    <span>③ 风险评估·缓冲判定</span><span class="arrow">→</span>
+    <span>④ 留痕与回查</span>
+  </div>
+
+  <div class="card">
+    <div class="rowline" style="align-items:stretch;gap:18px;flex-wrap:nowrap">
+      <div class="lamp 等待" id="ovLamp">—</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:18px;font-weight:650" id="ovLevel">等待评估</div>
+        <div class="muted" id="ovWhy" style="margin-top:3px">尚未运行风险评估。</div>
+        <div class="muted" id="ovRule" style="margin-top:3px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="card"><h3>现金流事实</h3><div class="kv" id="ovCf"></div>
+      <p class="muted" id="ovCfNote" style="margin-top:8px">尚未在「现金流计算」分区运行。</p></div>
+    <div class="card"><h3>三层模型结论</h3><div class="kv" id="ovL3"></div>
+      <p class="muted" id="ovL3Note" style="margin-top:8px">尚未在「风险评估」分区运行。</p></div>
+    <div class="card"><h3>后端状态</h3><div class="kv" id="ovCon"></div>
+      <p class="muted" id="ovConNote" style="margin-top:8px"></p></div>
+  </div>
+
+  <div class="card">
+    <h2>本次会话关键结论</h2>
+    <table>
+      <thead><tr><th>项目</th><th>状态</th><th>说明</th></tr></thead>
+      <tbody id="ovTodo"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================== 分区 2：现金流计算 ===================== -->
+<section class="pane" id="pane-cf">
+  <div class="card">
+    <h2>数据来源与校验</h2>
+    <div class="formgrid">
+      <div><label for="cfSource">选择已登记的数据来源</label><select id="cfSource"></select></div>
+    </div>
+    <div class="acts">
+      <button id="cfRun" class="primary">运行计算</button>
+      <button id="cfAudit">检查原始八表</button>
+      <button id="cfPrompt">复制千问分析指令</button>
+    </div>
+    <div class="muted" id="cfMsg" style="margin-top:10px" role="status" aria-live="polite">请等待来源加载。</div>
+  </div>
+
+  <div class="notice">当前展示合成测试数据。原始八表样例中的单位、重复记录及余额来源问题仍需确认，系统不会自动改错或补零。</div>
+
+  <!-- 阻塞提示 -->
+  <div class="card" id="cfBlocked" hidden>
+    <h2>本次计算被阻止</h2>
+    <p class="muted">请先补齐以下项目，再重新运行：</p>
+    <ul id="cfIssues"></ul>
+  </div>
+
+  <!-- 八表检查结果 -->
+  <div class="card" id="cfAuditBox" hidden>
+    <h2>原始八表检查</h2>
+    <p class="muted" id="cfAuditSummary"></p>
+    <p class="muted">以下是实际执行的已列检查，不代表完整历史数据闸或全口径现金流已通过。原表保留，未写数据库。</p>
+    <ul id="cfAuditFindings"></ul>
+    <details><summary>正常业务说明与未执行项目</summary><div class="pre" id="cfAuditNotes"></div></details>
+    <details><summary>查看逐行现金性质映射预览</summary>
+      <p class="muted">额度、计划、应收与跨表证据分别保留。以下记录没有合计为企业完整现金流。</p>
+      <table><thead><tr><th>来源</th><th>处理说明</th></tr></thead><tbody id="cfAuditMap"></tbody></table>
+    </details>
+    <div class="acts"><button id="cfAuditDown">下载原表检查 JSON</button></div>
+  </div>
+
+  <!-- 计算结果 -->
+  <div class="card" id="cfResult" hidden>
+    <h2>本次程序计算结果 <span class="badge">合成数据</span></h2>
+    <div class="cards" id="cfCardsTop"></div>
+    <div class="rowline" style="margin-top:12px">
+      <span id="cfRecon"></span><span id="cfRisk"></span>
+    </div>
+    <p class="muted" id="cfExplain" style="margin-top:8px"></p>
+  </div>
+
+  <div class="card" id="cfGroups" hidden>
+    <h2>三类现金流汇总（元）</h2>
+    <table><thead><tr><th>分类</th><th class="num">流入</th><th class="num">流出</th><th class="num">净额</th></tr></thead>
+      <tbody id="cfGroupRows"></tbody></table>
+    <p class="muted" id="cfSelNote" style="margin-top:8px"></p>
+  </div>
+
+  <div class="card" id="cfAmounts" hidden>
+    <h2>核对明细</h2>
+    <table><thead><tr><th>项目</th><th class="num">金额（元）</th></tr></thead><tbody id="cfAmtRows"></tbody></table>
+  </div>
+</section>
+
+<!-- ===================== 分区 3：风险评估 ===================== -->
+<section class="pane" id="pane-rk">
+  <!-- 数据来源声明 -->
+  <div class="notice blue" id="rkDeclare"></div>
+
+  <div class="card">
+    <h2>配置面板（模块八）</h2>
+    <div class="formgrid">
+      <div><label for="rkInd">行业（决定 K黄/K红 系数）</label><select id="rkInd"></select></div>
+      <div><label for="rkScn">受评对象（合成演示样本）</label><select id="rkScn"></select></div>
+      <div><label for="rkAmt">本次申请金额（元，用于分级审批）</label><input id="rkAmt" type="number" value="120000"></div>
+      <div><label for="rkNpg">每组样本量（三层模型样本池）</label>
+        <select id="rkNpg"><option value="20">20（默认）</option><option value="35">35</option><option value="50">50</option></select></div>
+    </div>
+    <div class="acts">
+      <button id="rkRun" class="primary">运行评估</button>
+      <button id="rkSave">保存留痕（写隔离库）</button>
+      <button id="rkLogs">查看留痕记录</button>
+      <span class="muted" id="rkMsg" role="status" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="rowline" style="align-items:stretch;gap:18px;flex-wrap:nowrap">
+      <div class="lamp 等待" id="rkLamp">—</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:18px;font-weight:650" id="rkLevel">等待评估</div>
+        <div class="muted" id="rkWhy" style="margin-top:3px"></div>
+        <div class="muted" id="rkFormula" style="margin-top:3px"></div>
+      </div>
+      <div class="g3" style="flex:0 0 auto;gap:10px">
+        <div class="k"><div class="lab">Q 数据质量</div><div class="val" id="rkQ">—</div></div>
+        <div class="k"><div class="lab">D 判别得分</div><div class="val" id="rkD">—</div></div>
+        <div class="k"><div class="lab">P 舞弊概率</div><div class="val" id="rkP">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>现金流事实（来自「现金流计算」分区）</h2>
+    <div class="cards" id="rkCfCards"></div>
+    <p class="muted" id="rkCfNote" style="margin-top:10px"></p>
+  </div>
+
+  <div class="g2">
+    <div class="card"><h2>相对指标阈值（v8 核心升级）</h2>
+      <table id="rkThr"></table><p class="muted" id="rkThrNote" style="margin-top:8px"></p></div>
+    <div class="card"><h2>缓冲判定</h2>
+      <table id="rkBuf"></table><p class="muted" id="rkBufNote" style="margin-top:8px"></p></div>
+  </div>
+
+  <div class="card">
+    <h2>三层风控模型</h2>
+    <div class="g3">
+      <div><h3>第一层 · 数据质量门禁</h3><div class="val" id="rkQBig" style="font-size:26px;font-weight:700">—</div>
+        <p class="muted" id="rkQNote"></p><p class="muted" id="rkQSrc"></p></div>
+      <div><h3>第二层 · 改进 DEA-DA</h3><div class="val" id="rkDBig" style="font-size:26px;font-weight:700">—</div>
+        <p class="muted" id="rkDNote"></p><p class="muted" id="rkDSrc"></p></div>
+      <div><h3>第三层 · Benford-随机森林</h3><div class="val" id="rkPBig" style="font-size:26px;font-weight:700">—</div>
+        <p class="muted" id="rkPNote"></p><p class="muted" id="rkPSrc"></p></div>
+    </div>
+    <details style="margin-top:12px"><summary>第一层明细：15 个指标的 Benford χ² 与末位检验</summary>
+      <table><thead><tr><th>指标</th><th>名称</th><th>性质</th><th class="num">Benford χ²</th><th>偏离</th>
+        <th class="num">Myer 指数</th><th class="num">末位 χ²</th><th>堆积</th><th class="num">B</th><th class="num">M</th></tr></thead>
+        <tbody id="rkGate"></tbody></table>
+      <p class="muted" id="rkGateNote"></p>
+    </details>
+    <details><summary>第二层明细：DEA-DA 投入产出权重（可解释性）</summary>
+      <div class="g2"><div><h3>投入指标权重</h3><table id="rkIn"></table></div>
+        <div><h3>产出指标权重</h3><table id="rkOut"></table></div></div>
+      <p class="muted" id="rkDaNote"></p>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>常态化压力测试（每月 1 号自动跑）</h2>
+    <table><thead><tr><th>场景</th><th>说明</th><th class="num">缺口（元）</th><th class="num">冲击后缓冲</th>
+      <th class="num">缓冲倍数</th><th class="num">剩余天数</th><th>等级</th></tr></thead>
+      <tbody id="rkStress"></tbody></table>
+    <p class="muted" id="rkStressNote" style="margin-top:8px"></p>
+    <details><summary>压力测试输入出处</summary><div class="pre" id="rkStressSrc"></div></details>
+  </div>
+
+  <div class="g2">
+    <div class="card"><h2>分级审批（模块四）</h2><table id="rkAppr"></table>
+      <p class="muted" id="rkApprNote" style="margin-top:8px"></p></div>
+    <div class="card"><h2>三态跟踪与到账验证（模块五）</h2>
+      <table><thead><tr><th>对象</th><th class="num">未收（元）</th><th>到账状态</th><th>验证方式</th><th>状态</th></tr></thead>
+        <tbody id="rkTrack"></tbody></table>
+      <p class="muted" id="rkTrackNote" style="margin-top:8px"></p></div>
+  </div>
+
+  <div class="card"><h2>例外审批回溯（每季度 1 号）</h2>
+    <table><thead><tr><th>部门</th><th class="num">审批次数</th><th class="num">例外次数</th><th class="num">例外率</th>
+      <th class="num">例外金额（元）</th><th>判定</th><th>动作</th></tr></thead><tbody id="rkExc"></tbody></table>
+    <p class="muted" id="rkExcNote" style="margin-top:8px"></p></div>
+
+  <div class="card"><details><summary>查看本次评估完整 JSON</summary>
+    <div class="pre" id="rkRaw">尚未运行。</div></details></div>
+</section>
+
+<!-- ===================== 分区 4：留痕与回查 ===================== -->
+<section class="pane" id="pane-rc">
+  <div class="card">
+    <h2>结果留档（现金流计算）</h2>
+    <p class="muted">只有点击保存才会写入隔离数据库。重试保留同一请求编号，回查可确认实际提交状态。</p>
+    <div style="margin-top:12px">
+      <label for="rcReq" style="display:block;font-size:12px;color:var(--muted);margin-bottom:5px">本次请求编号</label>
+      <input id="rcReq" maxlength="128" placeholder="在「现金流计算」分区运行后自动生成">
+    </div>
+    <div class="acts">
+      <button id="rcSave" class="primary" disabled>保存至隔离库</button>
+      <button id="rcQuery" disabled>回查本次记录</button>
+      <button id="rcDown" disabled>下载结果 JSON</button>
+      <button id="rcReport" disabled>下载核对说明</button>
+    </div>
+    <div class="muted" id="rcReceipt" style="margin-top:10px" role="status" aria-live="polite">尚未保存。</div>
+    <details><summary>来源、计算版本与完整结果</summary><div class="pre" id="rcRaw">尚未运行。</div></details>
+  </div>
+
+  <div class="card">
+    <h2>留痕记录（风险评估 · MySQL 隔离库）</h2>
+    <div class="acts" style="margin-top:0"><button id="rcLogs">刷新留痕记录</button></div>
+    <table><thead><tr><th>请求编号</th><th>行业</th><th>场景</th><th class="num">Q</th><th class="num">D</th>
+      <th class="num">P</th><th>等级</th><th class="num">缓冲倍数</th><th>时间</th></tr></thead>
+      <tbody id="rcLogRows"><tr><td colspan="9" class="muted">尚未查询。</td></tr></tbody></table>
+  </div>
+</section>
+
+<!-- ===================== 分区 5：后端控制台 ===================== -->
+<section class="pane" id="pane-cn">
+  <div class="card">
+    <h2>运行实例</h2>
+    <p class="muted" id="cnChecked">本次探测时间：—</p>
+    <div class="kv" id="cnRuntime"><div><span>加载中</span><b>—</b></div></div>
+  </div>
+
+  <div class="card">
+    <h2>服务与端口</h2>
+    <p class="muted">绿点表示该端口正在监听。全部只绑回环（127.0.0.1），只有 80/443 对外。</p>
+    <table><thead><tr><th>组件</th><th>端口</th><th>监听</th><th>作用</th></tr></thead>
+      <tbody id="cnServices"><tr><td colspan="4" class="muted">加载中</td></tr></tbody></table>
+  </div>
+
+  <div class="card">
+    <h2>数据库</h2>
+    <p class="muted" id="cnDbSub">正在连接</p>
+    <div class="kv" id="cnDbKv"></div>
+    <table style="margin-top:16px"><thead><tr><th>记录编号</th><th>请求编号</th><th>期间</th>
+      <th>操作</th><th class="num">期末余额</th><th>写入时间</th></tr></thead>
+      <tbody id="cnDbRows"><tr><td colspan="6" class="muted">—</td></tr></tbody></table>
+    <p class="muted" style="margin:12px 0 0">只展示最近 5 条。期末余额取自写入时的结果快照。</p>
+  </div>
+
+  <div class="card">
+    <h2>HTTP 接口</h2>
+    <p class="muted">点“测”会真实请求一次（只测只读接口）。返回结果直接显示在下方。</p>
+    <table><thead><tr><th>方法</th><th>路径</th><th>说明</th><th></th></tr></thead>
+      <tbody id="cnEndpoints"><tr><td colspan="4" class="muted">加载中</td></tr></tbody></table>
+    <div class="pre" id="cnProbe">尚未测试。</div>
+  </div>
+
+  <div class="card">
+    <h2>MCP 端点</h2>
+    <p class="muted" id="cnMcpSub">—</p>
+    <div class="kv" id="cnMcpKv"></div>
+    <table style="margin-top:16px"><thead><tr><th>工具名</th><th>作用</th></tr></thead>
+      <tbody id="cnTools"></tbody></table>
+  </div>
+
+  <div class="card">
+    <h2>推送通道</h2>
+    <p class="muted">未配置的通道不会发送，也不会静默假装成功。</p>
+    <div class="kv" id="cnNotify"></div>
+  </div>
+
+  <div class="notice">这个分区是只读的：不执行计算、不写库、不发送通知。要跑业务，请到「现金流计算」或「风险评估」分区操作。</div>
+</section>
+
+</main>
+</div>
+
+<script>
+/* ============================================================================
+   统一工作台 · 脚本
+   ----------------------------------------------------------------------------
+   架构约定（解决多页合并后的命名冲突）：
+   1) 全站只暴露一个全局对象 W，其余全部闭包内私有。
+   2) DOM id 按分区加前缀：ov-* / cf-* / rk-* / rc-* / cn-*，物理上不可能重名。
+   3) 每个功能模块包在 IIFE 里，模块之间通过 W.store 通信，不直接互相调用。
+   4) 模块间数据流转走中央状态：
+        现金流计算 --set cashflow--> store --get--> 风险评估（缓冲判定）
+        风险评估   --set assessment-> store --get--> 总览 / 留痕
+   ============================================================================ */
+(function(){
+'use strict';
+var W = {};
+
+/* ---------------------------------------------------------------------------
+   0. 内置快照：服务器真实运行结果（引擎 v1 + 三层模型），用于未连后端时展示。
+      这些数值由后端实际计算产出，不是前端编造，仅作为离线时的静态副本。
+   --------------------------------------------------------------------------- */
+var SNAPSHOT = {
+  edge: {"schema":"mfg-v8-risk-assessment.v1","行业":"制造业","行业参数":{"code":"C13","K黄":2.5,"K红":1.5,"时间缓冲黄灯天":45,"时间缓冲红灯天":25,"融资缓冲权重":0.4,"经营调整缓冲权重":0.3,"应收账款周转天数比":1.3,"存货周转天数比":1.3,"流动比率比":0.7,"资产负债率警戒":0.7,"审批分界线1":0.5,"审批分界线2":2.0,"特殊规则":["存货周转天数/行业均值 > 1.3 标记运营风险","原材料价格波动 > 20% 触发成本冲击模拟"]},"受评对象":"受评企业B（缓冲偏紧）","受评说明":"合成受评样本，盈利与偿债指标接近临界","声明":{"现金流来源":"v1.2 计算内核 program_workbench.calculate('synthetic_eight_sheet_v1')，真实计算","财务比率来源":"合成演示输入（固定种子 20261027 生成，可复现）；不代表任何真实企业","不启用声明":"合成八表行业参数表注明“不启用评级或风险阈值”，故三层模型输入为独立登记的合成样本，与现金流结果分离"},"现金流事实":{"ok":true,"期末现金":177000.0,"期初现金":100000.0,"本期净额":77000.0,"月均经营性流出M":70000.0,"经营性净额":60000.0,"投资性净额":-15000.0,"筹资性净额":32000.0,"对账":"matched","期间":"2026-08","run_id":"eight-bf52800eefa0d6b89fea0e1449cb9692"},"相对阈值":{"M_月均经营性流出":70000.0,"K黄":2.5,"K红":1.5,"黄灯线":175000.0,"红灯线":105000.0,"动态阈值":{"启用":false,"模式":"static","K黄":2.5,"K红":1.5,"样本月数":0,"最低月数":12,"原因":"历史缓冲倍数仅 0 个月，未满 12 个月，保持静态阈值","静态对照":{"K黄":2.5,"K红":1.5},"口径":"动态阈值启用条件：连续 12 个月历史缓冲倍数"},"口径":"现金缓冲预警线 = M × K（相对指标，随企业规模自动缩放）"},"缓冲判定":{"缓冲":177000.0,"缓冲倍数":2.5285714285714285,"等级":"绿灯","判定依据":"缓冲倍数 2.53 ≥ K黄 2.50","阈值":{"M_月均经营性流出":70000.0,"K黄":2.5,"K红":1.5,"黄灯线":175000.0,"红灯线":105000.0,"动态阈值":{"启用":false,"模式":"static","K黄":2.5,"K红":1.5,"样本月数":0,"最低月数":12,"原因":"历史缓冲倍数仅 0 个月，未满 12 个月，保持静态阈值","静态对照":{"K黄":2.5,"K红":1.5},"口径":"动态阈值启用条件：连续 12 个月历史缓冲倍数"},"口径":"现金缓冲预警线 = M × K（相对指标，随企业规模自动缩放）"}},"第一层":{"Q":0.5667,"临界":{"Benford_chi2":20.09,"末位均匀分布_chi2":16.92},"判据说明":"末位堆积判据采用末位数字均匀分布 χ² 检验（df=9，5% 临界 16.92）；Myer 指数数值照实展示但小样本下易虚高，故不作为唯一判据","命中Benford数":5,"命中Myer数":8,"指标数":15,"口径":"Q = 1 − (ΣB + ΣM) / (2 × 指标数)，越接近 1 数据质量越高","明细":{"X1":{"名称":"净资产收益率","性质":"positive","benford_chi2":4.902,"benford_偏离":false,"benford_风险数字":1,"myer指数":25.0,"末位卡方":11.0,"myer_堆积":false,"myer_风险数字":2,"B因子":0,"M因子":0},"X2":{"名称":"资产报酬率","性质":"positive","benford_chi2":25.64,"benford_偏离":true,"benford_风险数字":5,"myer指数":45.0,"末位卡方":12.5,"myer_堆积":false,"myer_风险数字":2,"B因子":1,"M因子":0},"X3":{"名称":"营业利润率","性质":"positive","benford_chi2":12.931,"benford_偏离":false,"benford_风险数字":2,"myer指数":45.0,"末位卡方":19.0,"myer_堆积":true,"myer_风险数字":8,"B因子":0,"M因子":1},"X4":{"名称":"流动比率","性质":"positive","benford_chi2":16.042,"benford_偏离":false,"benford_风险数字":2,"myer指数":35.0,"末位卡方":21.5,"myer_堆积":true,"myer_风险数字":5,"B因子":0,"M因子":1},"X5":{"名称":"速动比率","性质":"positive","benford_chi2":7.773,"benford_偏离":false,"benford_风险数字":1,"myer指数":35.0,"末位卡方":11.0,"myer_堆积":false,"myer_风险数字":4,"B因子":0,"M因子":0},"X6":{"名称":"利息保障倍数","性质":"positive","benford_chi2":3.83,"benford_偏离":false,"benford_风险数字":2,"myer指数":30.0,"末位卡方":15.0,"myer_堆积":false,"myer_风险数字":2,"B因子":0,"M因子":0},"X7":{"名称":"利润总额增长率","性质":"positive","benford_chi2":21.12,"benford_偏离":true,"benford_风险数字":5,"myer指数":60.0,"末位卡方":18.0,"myer_堆积":true,"myer_风险数字":5,"B因子":1,"M因子":1},"X8":{"名称":"营业收入增长率","性质":"positive","benford_chi2":18.318,"benford_偏离":false,"benford_风险数字":1,"myer指数":45.0,"末位卡方":18.5,"myer_堆积":true,"myer_风险数字":6,"B因子":0,"M因子":1},"X9":{"名称":"总资产增长率","性质":"positive","benford_chi2":14.343,"benford_偏离":false,"benford_风险数字":1,"myer指数":15.0,"末位卡方":14.0,"myer_堆积":false,"myer_风险数字":8,"B因子":0,"M因子":0},"X10":{"名称":"应收账款周转率","性质":"positive","benford_chi2":10.232,"benford_偏离":false,"benford_风险数字":4,"myer指数":30.0,"末位卡方":19.0,"myer_堆积":true,"myer_风险数字":2,"B因子":0,"M因子":1},"X11":{"名称":"固定资产周转率","性质":"positive","benford_chi2":21.461,"benford_偏离":true,"benford_风险数字":5,"myer指数":40.0,"末位卡方":13.5,"myer_堆积":false,"myer_风险数字":5,"B因子":1,"M因子":0},"X12":{"名称":"总资产周转率","性质":"positive","benford_chi2":8.799,"benford_偏离":false,"benford_风险数字":2,"myer指数":35.0,"末位卡方":20.5,"myer_堆积":true,"myer_风险数字":2,"B因子":0,"M因子":1},"X13":{"名称":"资产负债率","性质":"inverse","benford_chi2":36.357,"benford_偏离":true,"benford_风险数字":1,"myer指数":25.0,"末位卡方":17.0,"myer_堆积":true,"myer_风险数字":1,"B因子":1,"M因子":1},"X14":{"名称":"成本费用利润率","性质":"positive","benford_chi2":11.211,"benford_偏离":false,"benford_风险数字":6,"myer指数":15.0,"末位卡方":15.0,"myer_堆积":false,"myer_风险数字":6,"B因子":0,"M因子":0},"X15":{"名称":"总资产现金回收率","性质":"positive","benford_chi2":27.302,"benford_偏离":true,"benford_风险数字":5,"myer指数":45.0,"末位卡方":28.0,"myer_堆积":true,"myer_风险数字":5,"B因子":1,"M因子":1}},"来源":"杨贵军等，2022《统计与决策》BM-BP 双质量因子"},"第二层":{"D":0.187676,"判别得分":0.048008,"临界值":-0.139668,"判为风险":false,"权重":{"X9":0.059739,"X7":0.080038,"AR_DAYS":0.413819,"X13":0.0,"X1":0.032325,"X2":0.0,"X3":0.152182,"X6":0.261897},"投入指标":["X9","X7","AR_DAYS","X13"],"产出指标":["X1","X2","X3","X6"],"样本":{"健康组":20,"风险组":20},"求解":"两阶段单纯形法（自带实现）","降级":false,"口径":"D = (Σv·投入 + Σu·产出) − 临界值；D < 0 判为财务风险","来源":"马秀颖等，2026《数理统计与管理》改进 DEA-DA（BCC 规模收益可变）"},"第三层":{"P":0.9833,"树数":60,"特征维度":30,"特征构成":"15 个财务比率 + 15 个 Benford 因子（共 30 维）","参数":{"n_estimators":60,"max_depth":4,"bootstrap":true},"口径":"多数投票的舞弊概率；P ≥ 0.7 升级红灯，P < 0.3 降级黄灯","来源":"孙玲莉等，2021《数量经济技术经济研究》Benford-随机森林"},"融合判定":{"等级":"黄灯","依据":"财务健康判别 D≥0，但舞弊概率 P≥0.7，两个结论相互冲突；不放行绿灯，转人工复核","规则ID":"FUSE-R6","规则版本":"fuse-v2.0","公式":"红灯：Q不可用，或 Q<0.3，或 (D<0 且 P≥0.7)；黄灯：D不可用，或 (D<0 且 P<0.7)，或 (D≥0 且 P≥0.7 结论冲突)，或 (D≥0 且 Q<0.5)，或 (D≥0 且 Q≥0.5 且 P不可用)；绿灯：Q≥0.5 且 D≥0 且 P<0.7","状态":{"Q":"达标","D":"正常","P":"高"},"输入":{"Q":0.5667,"D":0.187676,"P":0.9833,"D可信":true,"P可信":true,"Q可用":true,"D可用":true,"P可用":true}},"最终等级":{"等级":"黄灯","取严来源":"三层融合判定 FUSE(Q,D,P)","三层融合":"黄灯","缓冲判定":"绿灯","口径":"取较严格者（参与维度：三层融合判定 FUSE(Q,D,P)、现金流缓冲判定（相对阈值 M×K））","缓冲维度参与比较":true},"压力测试":{"场景结果":[{"场景":"回款冲击","说明":"所有应收账款延迟 30 天到账","缺口":70000.0,"冲击后缓冲":107000.0,"缓冲倍数":1.5285714285714285,"缓冲剩余天数":45.9,"等级":"黄灯","判定依据":"缓冲倍数 1.53 介于 K红 1.50 与 K黄 2.50 之间"},{"场景":"融资冲击","说明":"授信额度缩减 50%","缺口":50000.0,"冲击后缓冲":127000.0,"缓冲倍数":1.8142857142857143,"缓冲剩余天数":54.4,"等级":"黄灯","判定依据":"缓冲倍数 1.81 介于 K红 1.50 与 K黄 2.50 之间"},{"场景":"成本冲击","说明":"主要成本上涨 20%","缺口":14000.0,"冲击后缓冲":163000.0,"缓冲倍数":2.3285714285714287,"缓冲剩余天数":69.9,"等级":"黄灯","判定依据":"缓冲倍数 2.33 介于 K红 1.50 与 K黄 2.50 之间"},{"场景":"联合冲击","说明":"以上三项同时发生","缺口":134000.0,"冲击后缓冲":43000.0,"缓冲倍数":0.6142857142857143,"缓冲剩余天数":18.4,"等级":"红灯","判定依据":"缓冲倍数 0.61 < K红 1.50"}],"最坏情况":{"场景":"联合冲击","说明":"以上三项同时发生","缺口":134000.0,"冲击后缓冲":43000.0,"缓冲倍数":0.6142857142857143,"缓冲剩余天数":18.4,"等级":"红灯","判定依据":"缓冲倍数 0.61 < K红 1.50"},"触发紧急任务":true,"口径":"缓冲倍数 = 冲击后缓冲 ÷ 月均经营性流出 M；< K红 红灯，< K黄 黄灯","输入出处":{"应收30天内到期余额":"应收账款表 SYN-AR-001：应收 20 万，已收 13 万，余 7 万未收","可用授信额度":"筹资信息表：银行授信额度 10 万（非现金，仅作融资冲击基数）","月度主要成本":"现金流水表 2026-08：经营性流出 7 万/月"}},"分级审批":{"金额":120000.0,"月均业务规模":70000.0,"金额倍数":1.7142857142857142,"审批人":"财务总监","要求":"财务总监签字","分界线":{"线1":0.5,"线2":2.0},"口径":"审批分界线 = 月均业务规模 × 比例（相对指标）"},"三态跟踪":{"记录":[{"对象":"应收账款 SYN-AR-001（合成客户A）","应收":200000.0,"已收":130000.0,"未收":70000.0,"到账状态":"部分到账","验证方式":"凭证上传 + 抽检 20%","计入缓冲":"仅已验证到账部分计入","状态":"观察中"},{"对象":"银行流水 SYN-T1（货款 13 万）","应收":130000.0,"已收":130000.0,"未收":0.0,"到账状态":"已到账","验证方式":"银行流水自动比对","计入缓冲":"计入","状态":"已化解"}],"规则":"待验证金额不计入现金缓冲；只有验证通过后才纳入缓冲计算","三态":{"已化解":"绿色","观察中":"黄色 + 倒计时","已恶化":"红色 + 提醒"}},"例外回溯":{"部门统计":[{"部门":"采购部","审批次数":24,"例外次数":6,"例外率":0.25,"例外金额":380000.0,"判定":"异常偏高（例外率 > 20%）","动作":"触发审计检查"},{"部门":"销售部","审批次数":31,"例外次数":3,"例外率":0.097,"例外金额":120000.0,"判定":"正常","动作":"无"},{"部门":"生产部","审批次数":18,"例外次数":1,"例外率":0.056,"例外金额":45000.0,"判定":"正常","动作":"无"}],"判定规则":["例外率 > 0.2 → 异常偏高","连续 3 次理由相同且长度 < 10 → 理由敷衍","例外金额 > 季度预算 × 0.15 → 金额异常"],"说明":"本表为 v8 设计的回溯演示数据（合成），用于展示机制而非真实审计结论"}},
+  industries: {"source":{"book":"上市公司年报 / 中国统计年鉴","year":"2024","note":"方案预设值，非本工程实测；K黄取样本 P25 分位，K红取 P10 分位。"},"industries":{"制造业":{"code":"C13","K黄":2.5,"K红":1.5,"时间缓冲黄灯天":45,"时间缓冲红灯天":25,"融资缓冲权重":0.4,"经营调整缓冲权重":0.3,"应收账款周转天数比":1.3,"存货周转天数比":1.3,"流动比率比":0.7,"资产负债率警戒":0.7,"审批分界线1":0.5,"审批分界线2":2.0,"特殊规则":["存货周转天数/行业均值 > 1.3 标记运营风险","原材料价格波动 > 20% 触发成本冲击模拟"]},"零售业":{"code":"F52","K黄":1.8,"K红":1.0,"时间缓冲黄灯天":30,"时间缓冲红灯天":15,"融资缓冲权重":0.2,"经营调整缓冲权重":0.5,"应收账款周转天数比":1.5,"存货周转天数比":1.3,"流动比率比":0.7,"资产负债率警戒":0.65,"审批分界线1":0.3,"审批分界线2":1.0,"特殊规则":["春节/双十一 K黄 上浮至 2.3、K红 上浮至 1.3","库存积压 > 60 天触发折价清仓推演"]},"建筑业":{"code":"E48","K黄":3.5,"K红":2.0,"时间缓冲黄灯天":60,"时间缓冲红灯天":30,"融资缓冲权重":0.5,"经营调整缓冲权重":0.2,"应收账款周转天数比":1.5,"存货周转天数比":1.5,"流动比率比":0.8,"资产负债率警戒":0.8,"审批分界线1":1.0,"审批分界线2":4.0,"特殊规则":["完工百分比/付款比例 < 0.8 触发预警","甲方付款逾期 > 30 天自动升级风险等级"]},"科技服务业":{"code":"M75","K黄":1.5,"K红":1.0,"时间缓冲黄灯天":20,"时间缓冲红灯天":10,"融资缓冲权重":0.15,"经营调整缓冲权重":0.55,"应收账款周转天数比":1.3,"存货周转天数比":1.5,"流动比率比":0.8,"资产负债率警戒":0.55,"审批分界线1":0.3,"审批分界线2":1.0,"特殊规则":["人力成本/月均业务规模 > 0.7 触发人力结构推演","项目毛利率 < 20% 标记盈利风险"]}}},
+  scenarios: {"scenarios":[{"key":"healthy","name":"受评企业A（经营稳健）","note":"合成受评样本，各项指标处于健康区间"},{"key":"edge","name":"受评企业B（缓冲偏紧）","note":"合成受评样本，盈利与偿债指标接近临界"},{"key":"risk","name":"受评企业C（风险+疑似粉饰）","note":"合成受评样本，多项指标异常且末位数字存在堆积"}]},
+  sources: {"schema_version":"mfg-source-catalog.v1","sources":[{"source_id":"manufacturing_sample_v1","logical_name":"制造业_样例数据.xlsx","kind":"controlled_sample","status":"unavailable","expected_sha256":"7e32b1eca8cfe892bd0ee96dfe257b03965018e607fc0e8cbaface33c13d0a3b","actual_sha256":null,"native_qwen_workbook":false},{"source_id":"program_demo_v1","logical_name":"制造业_程序计算合成输入.xlsx","kind":"synthetic_program_input","status":"available","native_qwen_workbook":false},{"source_id":"program_difference_v1","logical_name":"制造业_余额差异合成输入.xlsx","kind":"synthetic_program_input","status":"available","native_qwen_workbook":false},{"source_id":"synthetic_eight_sheet_v1","logical_name":"制造业_完整八表_合成演示_v1.xlsx","kind":"complete_synthetic_eight_sheet","status":"available","data_type":"SYNTHETIC","native_qwen_workbook":false}],"other_industries_enabled":false},
+  cashflow: {
+    period: "2026-08",
+    status: "calculated",
+    can_save_source_result: true,
+    result: {
+      period: "2026-08",
+      amounts: {opening: 100000.00, inflow: 185000.00, outflow: 108000.00,
+                net: 77000.00, closing: 177000.00, actual_closing: 177000.00,
+                difference: 0.00},
+      reconciliation_state: "matched",
+      risk_flags: [],
+      cashflow_groups: {
+        operating: {inflow: 130000.00, outflow: 70000.00, net: 60000.00},
+        investing: {inflow: 5000.00, outflow: 20000.00, net: -15000.00},
+        financing: {inflow: 50000.00, outflow: 18000.00, net: 32000.00}
+      },
+      evidence: {selection_counts: {selected_actual_records: 6,
+        corroborating_only_records: 3, noncash_records: 4}},
+      source: {workbook_ref: "synthetic_eight_sheet_v1", sheet: "八表及独立余额证据",
+        range: "银行流水!A3:L8",
+        snapshot_ref: "87de72c310f2dcb6a2c4e055ddefc4a591b0ae0373be9e917251912499748cd9"},
+      execution: {algorithm_sha256: "snapshot", input_sha256: "snapshot"},
+      calculation_version: "v1.2",
+      run_id: "snapshot-run",
+      source_revision: "snapshot-rev"
+    }
+  }
+};
+
+/* ---------------------------------------------------------------------------
+   1. 共享工具（各模块可用，不污染全局）
+   --------------------------------------------------------------------------- */
+W.util = {
+  $: function(id){ return document.getElementById(id); },
+  /** 千分位金额，保留两位小数 */
+  money: function(v){
+    if(v===null||v===undefined) return '—';
+    var n=Number(v);
+    var s=Math.abs(n).toFixed(2).split('.');
+    return (n<0?'-':'')+s[0].replace(/\B(?=(\d{3})+(?!\d))/g,',')+'.'+s[1];
+  },
+  /** 三位小数，用于 Q / D / P / 倍数 */
+  f3: function(v){ return Number(v).toFixed(3); },
+  /** HTML 转义，所有插入 innerHTML 的动态文本都必须过这一道 */
+  esc: function(v){
+    return String(v==null?'—':v).replace(/[&<>"]/g,function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});
+  },
+  badge: function(t,c){ return '<span class="badge '+(c||'')+'">'+W.util.esc(t)+'</span>'; },
+  /** 灯色 → badge 样式 */
+  lampBadge: function(lv){
+    return W.util.badge(lv, lv==='红灯'?'err':(lv==='黄灯'?'warn':(lv==='绿灯'?'ok':'')));
+  },
+  /** 键值区块渲染 */
+  kv: function(target, items){
+    W.util.$(target).innerHTML = items.map(function(it){
+      return '<div><span>'+W.util.esc(it[0])+'</span><b'+(it[2]?' class="'+it[2]+'"':'')+'>'+
+             W.util.esc(it[1])+'</b></div>';
+    }).join('');
+  },
+  /** 两列表格：['标签','值'] 形式，值右对齐 */
+  rows2: function(tbody, pairs){
+    tbody.innerHTML = pairs.map(function(p){
+      return '<tr><td>'+W.util.esc(p[0])+'</td><td class="num">'+p[1]+'</td></tr>';
+    }).join('');
+  },
+  download: function(name, text, type){
+    var u=URL.createObjectURL(new Blob([text],{type:type}));
+    var a=document.createElement('a');
+    a.href=u; a.download=name; a.click();
+    setTimeout(function(){ URL.revokeObjectURL(u); },1000);
+  },
+  /** 运行时长格式化 */
+  dur: function(sec){
+    var s=Math.max(0,Math.floor(sec)),
+        d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60);
+    if(d) return d+' 天 '+h+' 小时';
+    if(h) return h+' 小时 '+m+' 分';
+    if(m) return m+' 分 '+(s%60)+' 秒';
+    return s+' 秒';
+  }
+};
+
+/* ---------------------------------------------------------------------------
+   2. 中央状态：模块间唯一的数据通道
+      set 会同步通知订阅者；订阅回调抛异常被隔离，不让一个模块的 bug 拖垮别的模块。
+   --------------------------------------------------------------------------- */
+W.store = (function(){
+  var s={}, subs={};
+  return {
+    set: function(k,v){
+      s[k]=v;
+      (subs[k]||[]).forEach(function(fn){
+        try{ fn(v); }catch(e){ console.error('[store] 订阅者异常',k,e); }
+      });
+    },
+    get: function(k){ return s[k]; },
+    on: function(k,fn){ (subs[k]=subs[k]||[]).push(fn); }
+  };
+})();
+
+/* ---------------------------------------------------------------------------
+   3. 统一请求层
+      - base.main: 主站（现金流计算 + 控制台）
+      - base.v8  : V8 三层风控（独立服务）
+      任一请求失败不向上抛，而是返回 {offline:true}，由调用方决定如何降级。
+   --------------------------------------------------------------------------- */
+W.api = (function(){
+  var token = (document.querySelector('meta[name="workbench-token"]')||{}).content || '';
+  // 令牌未被服务端替换，说明页面不是由工作台服务提供的 → 必然连不上后端
+  var served = token !== '__CSRF_TOKEN__';
+
+  var base = {main:'', v8:'/v8'};
+  try{
+    var saved = JSON.parse(localStorage.getItem('wb_conn')||'null');
+    if(saved){ base.main=saved.main||''; base.v8=saved.v8||'/v8'; }
+  }catch(e){}
+
+  function url(root,path){
+    // root 为 '' 时直接用 path（同源）；否则拼接成 root+path
+    return (root||'') + path;
+  }
+  async function call(root, path, opt){
+    if(!served && !root){
+      // 页面由静态方式打开且未配置外部地址：没必要发注定失败的请求
+      var e0 = new Error('offline'); e0.offline = true; throw e0;
+    }
+    var res = await fetch(url(root,path), opt);
+    var body = await res.json().catch(function(){ return {}; });
+    if(!res.ok) throw new Error(body.detail||body.error||('HTTP '+res.status));
+    return body;
+  }
+  return {
+    served: served,
+    getBase: function(){ return base; },
+    setBase: function(m,v){ base.main=m; base.v8=v;
+      try{ localStorage.setItem('wb_conn', JSON.stringify({main:m,v8:v})); }catch(e){}
+    },
+    resetBase: function(){ base={main:'',v8:'/v8'};
+      try{ localStorage.removeItem('wb_conn'); }catch(e){} },
+    get:  function(root, path){ return call(root, path, {cache:'no-store'}); },
+    post: function(root, path, data){
+      return call(root, path, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Workbench-Token':token},
+        body: JSON.stringify(data)
+      });
+    },
+    /** 探测后端是否可达，供页面顶部状态与离线提示使用 */
+    probe: async function(){
+      // 两个探测并行发起。串行时徽标要等第二个返回才更新，会明显滞后于
+      // 已经拿到数据的总览卡片，看着像「没连上」；并行后两者同时完成。
+      var r = {v8:false, main:false};
+      await Promise.all([
+        call(base.main, '/api/status', {cache:'no-store'})
+          .then(function(){ r.main = true; }, function(){}),
+        call(base.v8, '/api/v8/industries', {cache:'no-store'})
+          .then(function(){ r.v8 = true; }, function(){})
+      ]);
+      return r;
+    }
+  };
+})();
+
+/* ===========================================================================
+   模块 A：现金流计算（原「制造业现金流工作台」）
+   保留原有全部逻辑：来源加载 → 计算 → 八表检查 → 保存/回查/下载。
+   与风险评估的衔接点：计算完成后把现金流事实写入 store。
+   =========================================================================== */
+W.modCF = (function(){
+  var U = W.util;
+  // 原页面的金额标签字典，逐字保留
+  var LABELS = {opening:'期初余额', inflow:'三类流入合计', outflow:'三类流出合计',
+    net:'净现金流', closing:'计算期末余额', actual_closing:'独立实际期末余额',
+    difference:'实际期末 − 计算期末'};
+  var GROUP_NAMES = {operating:'经营活动', investing:'投资活动', financing:'筹资活动'};
+  // 保存白名单：只有这两个来源允许写入隔离库（原有业务约束，不可放宽）
+  var SAVE_OK = ['program_demo_v1','synthetic_eight_sheet_v1'];
+
+  var st = {result:null, calc:null, receipt:null, audit:null, busy:false};
+
+  function msg(text, isErr){
+    var el = U.$('cfMsg');
+    el.textContent = text;
+    el.style.color = isErr ? 'var(--red)' : 'var(--muted)';
+  }
+  function clearResult(){
+    ['cfBlocked','cfAuditBox','cfResult','cfGroups','cfAmounts'].forEach(function(id){
+      U.$(id).hidden = true; });
+    st.result=null; st.calc=null; st.receipt=null; st.audit=null;
+    U.$('cfIssues').innerHTML='';
+    U.$('cfAmtRows').innerHTML='';
+    U.$('rcRaw').textContent='尚未运行。';
+    U.$('rcReceipt').textContent='尚未保存。';
+    U.$('rcSave').disabled=true; U.$('rcQuery').disabled=true;
+    U.$('rcDown').disabled=true; U.$('rcReport').disabled=true;
+  }
+
+  /** 把金额写入 DOM 并同步到中央状态，供风险评估分区消费 */
+  function publishCashflow(result){
+    var a = result.amounts;
+    W.store.set('cashflow', {
+      period: result.period,
+      opening: Number(a.opening), inflow: Number(a.inflow),
+      outflow: Number(a.outflow), net: Number(a.net),
+      closing: Number(a.closing), actual_closing: Number(a.actual_closing),
+      difference: Number(a.difference),
+      matched: result.reconciliation_state==='matched',
+      groups: result.cashflow_groups || null,
+      run_id: result.run_id,
+      snapshot_ref: (result.source||{}).snapshot_ref || ''
+    });
+  }
+
+  async function run(){
+    if(st.busy) return;
+    st.busy = true;
+    clearResult();
+    msg('程序正在读取已登记来源并计算。');
+    try{
+      st.calc = await W.api.get('', '/api/calculate?source_id='+
+        encodeURIComponent(U.$('cfSource').value));
+    }catch(e){
+      // 离线或未连上：用内置快照，并如实标注来源
+      st.calc = JSON.parse(JSON.stringify(SNAPSHOT.cashflow));
+      msg('未连接后端，以下为内置快照（服务器真实运行结果）。', true);
+      U.$('offlineBox').hidden = false;
+    }
+    U.$('rcRaw').textContent = JSON.stringify(st.calc,null,2);
+
+    if(st.calc.status === 'blocked'){
+      var ul = U.$('cfIssues');
+      (st.calc.readiness.issues||[]).forEach(function(i){
+        var li=document.createElement('li');
+        li.textContent = (i.source?i.source+'：':'')+i.detail;
+        ul.appendChild(li);
+      });
+      U.$('cfBlocked').hidden = false;
+      msg('数据尚未就绪，本次未产生完整结果，也没有写库。', true);
+      st.busy=false; return;
+    }
+
+    var r = st.result = st.calc.result;
+
+    // —— 三类现金流汇总 ——
+    if(r.cashflow_groups){
+      U.$('cfGroups').hidden = false;
+      U.$('cfGroupRows').innerHTML = Object.keys(r.cashflow_groups).map(function(key){
+        var v = r.cashflow_groups[key];
+        return '<tr><td>'+U.esc(GROUP_NAMES[key]||key)+'</td><td class="num">'+U.money(v.inflow)+
+               '</td><td class="num">'+U.money(v.outflow)+'</td><td class="num">'+U.money(v.net)+'</td>';
+      }).join('');
+      var c = (r.evidence||{}).selection_counts || {};
+      U.$('cfSelNote').textContent = '主收付 '+(c.selected_actual_records||0)+' 笔；佐证记录 '+
+        (c.corroborating_only_records||0)+' 条、应收/额度/存量等非现金记录 '+
+        (c.noncash_records||0)+' 条均未重复计入。仅合成工程演示。';
+    }
+
+    // —— 四张主卡片 ——
+    U.$('cfResult').hidden = false;
+    U.$('cfCardsTop').innerHTML =
+      [['期初余额',r.amounts.opening],['现金流入',r.amounts.inflow],
+       ['现金流出',r.amounts.outflow],['计算期末',r.amounts.closing,'hl']]
+      .map(function(it){
+        return '<div class="k '+(it[2]||'')+'"><div class="lab">'+it[0]+'（元）</div>'+
+               '<div class="val">'+U.money(it[1])+'</div></div>';
+      }).join('');
+
+    var matched = r.reconciliation_state === 'matched';
+    var recon = U.$('cfRecon');
+    recon.textContent = matched ? '本次合成输入的余额核对一致'
+      : '余额差异 '+U.money(r.amounts.difference)+' 元，待核实';
+    recon.className = matched ? 'badge ok' : 'badge warn';
+
+    var risky = (r.risk_flags||[]).indexOf('negative_closing_cash') >= 0;
+    var risk = U.$('cfRisk');
+    risk.textContent = risky ? '期末现金为负，存在缺口' : '未验证真实企业风险';
+    risk.className = risky ? 'badge warn' : 'badge';
+
+    U.$('cfExplain').textContent = '期初余额 + 流入 − 流出 = 计算期末。'+
+      '独立实际期末来自单独的合成输入，不使用计算期末补齐。';
+
+    // —— 核对明细 ——
+    U.$('cfAmounts').hidden = false;
+    U.$('cfAmtRows').innerHTML = Object.keys(LABELS).map(function(k){
+      return '<tr><td>'+U.esc(LABELS[k])+'</td><td class="num">'+U.money(r.amounts[k])+'</td>';
+    }).join('');
+
+    // —— 保存可用性：受白名单与 can_save 双重约束（沿用原逻辑）——
+    var canSave = (SAVE_OK.indexOf(U.$('cfSource').value) >= 0) &&
+                  (st.calc.can_save_source_result !== false);
+    U.$('rcSave').disabled = !canSave;
+    U.$('rcQuery').disabled = false;
+    U.$('rcDown').disabled = false;
+    U.$('rcReport').disabled = false;
+    U.$('rcReq').value = 'program-ui-' + Date.now().toString(36) + '-' +
+      Math.random().toString(36).slice(2,8);
+
+    msg(matched ? '本次计算完成；尚未保存数据库。' : '计算完成但余额存在差异，保存已阻止。', !matched);
+
+    publishCashflow(r);
+    st.busy = false;
+  }
+
+  async function audit(){
+    if(st.busy) return;
+    st.busy = true;
+    clearResult();
+    U.$('cfSource').value = 'manufacturing_sample_v1';
+    msg('正在读取原始八表并执行已列检查。');
+    var err = '';
+    try{
+      st.audit = await W.api.get('', '/api/audit?source_id=manufacturing_sample_v1');
+    }catch(e){ err = e.message || ''; }
+    // 区分「连不上后端」与「后端明确返回了不可用」：
+    // 前者是网络问题，后者通常是样本来源未绑定，提示必须能区分。
+    if(err){
+      msg('原始八表检查不可用：' + (err==='offline' ? '未连接后端' : err), true);
+      st.busy=false; return;
+    }
+    var out = st.audit;
+    U.$('cfAuditBox').hidden = false;
+    var done = (out.checks||[]).filter(function(c){ return c.status==='executed'; }).length;
+    U.$('cfAuditSummary').textContent = '已读取 '+((out.sheet_names||[]).length)+' 张表，执行 '+
+      done+' 项检查，发现 '+((out.issues||[]).length)+' 项异常或待核记录；识别 '+
+      ((out.normal_partial_receipt_rows||[]).length)+' 笔正常部分到账。';
+    U.$('cfAuditFindings').innerHTML = (out.issues||[]).map(function(i){
+      return '<li>'+U.esc(i.source)+'：'+U.esc(i.detail)+'</li>'; }).join('');
+    U.$('cfAuditNotes').textContent = JSON.stringify({
+      observations: out.observations,
+      pending_checks: (out.checks||[]).filter(function(c){ return c.status!=='executed'; }),
+      remaining_checks: out.remaining_checks
+    },null,2);
+    U.$('cfAuditMap').innerHTML = (out.mapping_preview||[]).map(function(row){
+      return '<tr><td class="mono">'+U.esc(row.sheet)+' 第'+U.esc(row.row)+'行</td><td>'+
+             U.esc(row.reason)+'</td>'; }).join('');
+    U.$('rcRaw').textContent = JSON.stringify(out,null,2);
+    msg('原表检查完成；问题与缺证据仍保留，本次未生成完整现金结果。');
+    st.busy = false;
+  }
+
+  /** 载入来源列表；离线时用快照 */
+  async function loadSources(){
+    var data;
+    try{
+      data = await W.api.get('', '/api/sources');
+    }catch(e){
+      data = SNAPSHOT.sources;
+    }
+    U.$('cfSource').innerHTML = (data.sources||[]).map(function(s){
+      var kind = s.kind==='controlled_sample' ? '（原始埋错样例）' : '（合成输入）';
+      return '<option value="'+U.esc(s.source_id)+'"'+(s.status!=='available'?' disabled':'')+'>'+
+             U.esc(s.logical_name)+kind+'</option>';
+    }).join('');
+    U.$('cfSource').value = 'synthetic_eight_sheet_v1';
+    msg('来源已加载。点击「运行计算」读取输入并现场计算。');
+  }
+
+  // —— 保存 / 回查 / 下载（分区 4 的按钮，逻辑归属本模块）——
+  async function save(){
+    if(!st.result) return;
+    try{
+      var out = await W.api.post('', '/api/save',
+        {result: st.result, request_id: U.$('rcReq').value});
+      st.receipt = out;
+      U.$('rcReceipt').textContent = out.status==='committed'
+        ? '已提交。记录编号：'+out.receipt.record_id
+        : JSON.stringify(out,null,2);
+    }catch(e){
+      U.$('rcReceipt').textContent = '保存失败：'+e.message+'（未连接后端时无法写库）';
+    }
+  }
+  async function query(){
+    if(!st.result) return;
+    try{
+      var out = await W.api.post('', '/api/query', {
+        request_id: U.$('rcReq').value, period: st.result.period,
+        source_revision: st.result.source_revision, run_id: st.result.run_id
+      });
+      var same = out.status==='committed' &&
+        JSON.stringify(Object.entries(out.result.amounts).sort()) ===
+        JSON.stringify(Object.entries(st.result.amounts).sort()) &&
+        out.result.source.snapshot_ref === st.result.source.snapshot_ref &&
+        (out.result.execution||{}).algorithm_sha256 === st.result.execution.algorithm_sha256;
+      U.$('rcReceipt').textContent = same
+        ? '回查一致。记录编号：'+out.receipt.record_id
+        : JSON.stringify(out,null,2);
+      st.receipt = out;
+    }catch(e){
+      U.$('rcReceipt').textContent = '回查失败：'+e.message;
+    }
+  }
+  function downJson(){
+    if(!st.calc) return;
+    U.download('现金流计算结果_合成.json',
+      JSON.stringify({calculation:st.calc, receipt:st.receipt},null,2),'application/json');
+  }
+  function downReport(){
+    if(!st.result) return;
+    var t='制造业现金流核对说明\n数据类型：合成测试；计算位置：程序；不代表真实企业验收\n'+
+      '期间：'+st.result.period+'\n';
+    Object.keys(LABELS).forEach(function(k){
+      t += LABELS[k]+'：'+st.result.amounts[k]+' 元\n'; });
+    t += '来源：'+st.result.source.workbook_ref+'\n'+
+         '输入SHA256：'+st.result.execution.input_sha256+'\n'+
+         '计算版本：'+st.result.calculation_version+'\n'+
+         '余额状态：'+st.result.reconciliation_state+'\n'+
+         '数据库状态：'+((st.receipt&&st.receipt.status)||'未确认保存')+'\n'+
+         '限制：固定合成模板；不含通用Excel导入、真实来源核验和高级预测。';
+    U.download('现金流核对说明_合成.txt', t, 'text/plain');
+  }
+
+  function bind(){
+    U.$('cfRun').onclick = run;
+    U.$('cfAudit').onclick = audit;
+    U.$('cfAuditDown').onclick = function(){
+      if(st.audit) U.download('原始八表检查_受控样例.json',
+        JSON.stringify(st.audit,null,2),'application/json');
+    };
+    U.$('cfPrompt').onclick = function(){
+      var sid = U.$('cfSource').value;
+      var text = '请调用 calculate_manufacturing_cashflow，source_id="'+sid+
+        '"，展示实际返回的来源、金额、余额差异和风险提示。明确标注合成数据和程序计算。'+
+        '若阻塞请展示原因，不自动改错或补零。本次不要保存数据库。';
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){ msg('已复制千问分析指令。'); },
+          function(){ msg('复制失败，请手动选取。'); });
+      }else{ msg('当前环境不支持剪贴板。'); }
+    };
+    U.$('rcSave').onclick = save;
+    U.$('rcQuery').onclick = query;
+    U.$('rcDown').onclick = downJson;
+    U.$('rcReport').onclick = downReport;
+  }
+
+  return { init: function(){ bind(); loadSources(); }, run: run };
+})();
+
+/* ===========================================================================
+   模块 B：风险评估（原「v8 企业财务风险管控工作台」）
+   逻辑与渲染逐项保留；额外接收 store.cashflow，把现金流分区的产出用在这里。
+   =========================================================================== */
+W.modRK = (function(){
+  var U = W.util;
+  var st = {data:null, inds:null, scns:null, busy:false};
+
+  function msg(t){ U.$('rkMsg').textContent = t; }
+
+  async function loadMeta(){
+    try{
+      st.inds = await W.api.get(W.api.getBase().v8, '/api/v8/industries');
+      st.scns = await W.api.get(W.api.getBase().v8, '/api/v8/scenarios');
+    }catch(e){
+      st.inds = SNAPSHOT.industries;
+      st.scns = SNAPSHOT.scenarios;
+    }
+    U.$('rkInd').innerHTML = Object.keys(st.inds.industries||{}).map(function(k){
+      return '<option value="'+U.esc(k)+'">'+U.esc(k)+'</option>'; }).join('');
+    U.$('rkScn').innerHTML = (st.scns.scenarios||[]).map(function(s){
+      return '<option value="'+U.esc(s.key)+'">'+U.esc(s.name)+'</option>'; }).join('');
+    U.$('rkScn').value = 'edge';
+  }
+
+  async function run(){
+    if(st.busy) return;
+    st.busy = true;
+    msg('正在运行三层模型与压力测试…');
+    var p = new URLSearchParams({industry:U.$('rkInd').value, scenario:U.$('rkScn').value,
+      amount:U.$('rkAmt').value, n:U.$('rkNpg').value});
+    var d;
+    try{
+      d = await W.api.get(W.api.getBase().v8, '/api/v8/assess?'+p);
+    }catch(e){
+      // 离线：内置 edge 场景快照。切换场景无效，如实说明。
+      d = SNAPSHOT.edge;
+      U.$('offlineBox').hidden = false;
+      msg('未连接后端，以下为内置快照（edge 场景）。');
+    }
+    if(d.error){ msg('评估失败：'+d.error); st.busy=false; return; }
+    st.data = d;
+    render();
+    W.store.set('assessment', d);
+    msg('评估完成。');
+    st.busy = false;
+  }
+
+  function render(){
+    var d = st.data;
+    U.$('rkRaw').textContent = JSON.stringify(d,null,2);
+
+    // 数据来源声明
+    U.$('rkDeclare').innerHTML = '<b>数据来源声明：</b>'+
+      U.esc(d['声明']['现金流来源'])+' ｜ 财务比率：'+U.esc(d['声明']['财务比率来源'])+'。<br>'+
+      U.esc(d['声明']['不启用声明'])+'。';
+
+    // 灯
+    var fin = d['最终等级'], lv = fin ? fin['等级'] : d['融合判定']['等级'];
+    var lamp = U.$('rkLamp');
+    lamp.className = 'lamp '+lv;
+    lamp.textContent = lv;
+    U.$('rkLevel').textContent = '最终预警等级 '+lv+'　（受评：'+d['受评对象']+'）';
+    U.$('rkWhy').textContent = '三层融合 FUSE = '+d['融合判定']['等级']+
+      '；现金流缓冲判定 = '+((d['缓冲判定']&&d['缓冲判定']['等级'])||'—')+
+      '；取较严格者 → '+lv+'（取自：'+((fin&&fin['取严来源'])||'—')+'）';
+    U.$('rkFormula').textContent = '判定公式：'+d['融合判定']['公式']+
+      '　｜　'+((fin&&fin['口径'])||'');
+    U.$('rkQ').textContent = U.f3(d['第一层']['Q']);
+    U.$('rkD').textContent = U.f3(d['第二层']['D']);
+    U.$('rkP').textContent = U.f3(d['第三层']['P']);
+
+    renderCashflow();
+    renderThreshold(d);
+    renderLayers(d);
+    renderStress(d);
+    renderApproval(d);
+  }
+
+  /** 现金流事实：优先用「现金流计算」分区流转过来的结果 */
+  function renderCashflow(){
+    var box = U.$('rkCfCards');
+    var shared = W.store.get('cashflow');
+    if(shared){
+      box.innerHTML =
+        [['期初现金',shared.opening],['本期净额',shared.net],['期末现金',shared.closing,'hl'],
+         ['现金流入',shared.inflow],['现金流出',shared.outflow]]
+        .map(function(it){
+          return '<div class="k '+(it[2]||'')+'"><div class="lab">'+it[0]+'（元）</div>'+
+                 '<div class="val">'+U.money(it[1])+'</div></div>';
+        }).join('');
+      U.$('rkCfNote').textContent = '期间 '+shared.period+'｜对账状态 '+
+        (shared.matched?'一致':'存在差异')+'｜run_id '+shared.run_id+
+        '。数据由「现金流计算」分区流转而来（v1.2 内核计算）。';
+      return;
+    }
+    var cf = (st.data||{})['现金流事实'];
+    if(cf && cf.ok){
+      box.innerHTML =
+        [['期初现金',cf['期初现金']],['本期净额',cf['本期净额']],['期末现金',cf['期末现金'],'hl'],
+         ['月均经营性流出 M',cf['月均经营性流出M'],'hl'],
+         ['经营净额',cf['经营性净额']],['投资净额',cf['投资性净额']],['筹资净额',cf['筹资性净额']]]
+        .map(function(it){
+          return '<div class="k '+(it[2]||'')+'"><div class="lab">'+it[0]+'（元）</div>'+
+                 '<div class="val">'+U.money(it[1])+'</div></div>';
+        }).join('');
+      U.$('rkCfNote').textContent = '期间 '+cf['期间']+'｜对账状态 '+cf['对账']+
+        '｜run_id '+cf['run_id']+'。以上均由 v1.2 内核真实计算，非前端常量。';
+    }else{
+      box.innerHTML = '<div class="k bad"><div class="lab">现金流内核不可用</div>'+
+        '<div class="val">—</div></div>';
+      U.$('rkCfNote').textContent = '错误：'+((cf&&cf.error)||'尚未在「现金流计算」分区运行');
+    }
+  }
+
+  function renderThreshold(d){
+    var t = d['相对阈值'];
+    if(t){
+      U.rows2(U.$('rkThr'), [
+        ['月均经营性流出 M', U.money(t['M_月均经营性流出'])],
+        ['K黄（行业系数）', t['K黄']],
+        ['K红（行业系数）', t['K红']],
+        ['黄灯线 = M × K黄', U.money(t['黄灯线'])],
+        ['红灯线 = M × K红', U.money(t['红灯线'])]
+      ]);
+      U.$('rkThrNote').textContent = t['口径']+'。换行业即换 K，预警线随企业规模自动缩放。';
+    }
+    var bj = d['缓冲判定'];
+    if(bj){
+      U.rows2(U.$('rkBuf'), [
+        ['现金缓冲', U.money(bj['缓冲'])],
+        ['缓冲倍数 = 缓冲 ÷ M', U.f3(bj['缓冲倍数'])],
+        ['判定等级', bj['等级']]
+      ]);
+      U.$('rkBufNote').textContent = bj['判定依据'];
+    }
+  }
+
+  function renderLayers(d){
+    var g=d['第一层'], da=d['第二层'], rf=d['第三层'];
+    U.$('rkQBig').textContent = U.f3(g['Q']);
+    U.$('rkQNote').textContent = '命中 Benford 偏离 '+g['命中Benford数']+' 项、末位堆积 '+
+      g['命中Myer数']+' 项（共 '+g['指标数']+' 个指标）。'+g['口径'];
+    U.$('rkQSrc').textContent = '临界：Benford χ² > '+g['临界']['Benford_chi2']+
+      '、末位 χ² > '+g['临界']['末位均匀分布_chi2']+'。'+g['判据说明']+'。来源：'+g['来源'];
+
+    U.$('rkDBig').textContent = U.f3(da['D']);
+    U.$('rkDNote').textContent = '判别得分 '+U.f3(da['判别得分'])+'，临界值 '+
+      U.f3(da['临界值'])+' → '+(da['判为风险']?'判为财务风险':'判为健康')+
+      '。样本：健康 '+da['样本']['健康组']+' 家 / 风险 '+da['样本']['风险组']+' 家。'+da['口径'];
+    U.$('rkDSrc').textContent = '求解：'+da['求解']+'（降级='+da['降级']+'）。来源：'+da['来源'];
+
+    U.$('rkPBig').textContent = U.f3(rf['P']);
+    U.$('rkPNote').textContent = '随机森林 '+rf['树数']+' 棵，特征 '+rf['特征维度']+
+      ' 维（'+rf['特征构成']+'）。'+rf['口径'];
+    U.$('rkPSrc').textContent = '参数：n_estimators='+rf['参数']['n_estimators']+
+      '，max_depth='+rf['参数']['max_depth']+'，bootstrap=是。来源：'+rf['来源'];
+
+    // 第一层明细
+    var nm = {'X9':'总资产增长率','X7':'利润总额增长率','AR_DAYS':'应收周转天数(取负)',
+      'X13':'资产负债率(取负)','X1':'净资产收益率','X2':'资产报酬率',
+      'X3':'营业利润率','X6':'利息保障倍数'};
+    U.$('rkGate').innerHTML = Object.keys(g['明细']||{}).map(function(k){
+      var v = g['明细'][k];
+      return '<tr><td class="mono">'+U.esc(k)+'</td><td>'+U.esc(v['名称'])+'</td><td>'+
+        (v['性质']==='positive'?'正指标':'逆指标')+'</td><td class="num">'+
+        U.f3(v['benford_chi2'])+'</td><td>'+
+        (v['benford_偏离']?U.badge('偏离','err'):U.badge('合规','ok'))+'</td><td class="num">'+
+        U.f3(v['myer指数'])+'</td><td class="num">'+U.f3(v['末位卡方'])+'</td><td>'+
+        (v['myer_堆积']?U.badge('堆积','warn'):U.badge('正常','ok'))+'</td><td class="num">'+
+        v['B因子']+'</td><td class="num">'+v['M因子']+'</td>';
+    }).join('');
+    U.$('rkGateNote').textContent = 'χ² 临界 '+g['临界']['Benford_chi2']+
+      '（10% 显著性），末位 χ² 临界 '+g['临界']['末位均匀分布_chi2']+'（df=9，5%）。'+g['判据说明'];
+
+    // 第二层权重
+    var wt = da['权重']||{};
+    U.$('rkIn').innerHTML = (da['投入指标']||[]).map(function(k){
+      return '<tr><td>'+U.esc(k)+'（'+U.esc(nm[k]||k)+'）</td><td class="num">'+
+             U.f3(wt[k])+'</td>'; }).join('');
+    U.$('rkOut').innerHTML = (da['产出指标']||[]).map(function(k){
+      return '<tr><td>'+U.esc(k)+'（'+U.esc(nm[k]||k)+'）</td><td class="num">'+
+             U.f3(wt[k])+'</td>'; }).join('');
+    U.$('rkDaNote').textContent = '投入项中「越大越差」者（应收周转天数、资产负债率）已按 v8 文档做前处理取负，'+
+      '使全部投入满足「越大越好」；权重由线性规划求解，稀疏且可解释。'+da['口径'];
+  }
+
+  function renderStress(d){
+    U.$('rkStress').innerHTML = (d['压力测试']['场景结果']||[]).map(function(s){
+      return '<tr><td>'+U.esc(s['场景'])+'</td><td class="muted">'+U.esc(s['说明'])+
+        '</td><td class="num">'+U.money(s['缺口'])+'</td><td class="num">'+
+        U.money(s['冲击后缓冲'])+'</td><td class="num"><b>'+U.f3(s['缓冲倍数'])+
+        '</b></td><td class="num">'+s['缓冲剩余天数']+'</td><td>'+U.lampBadge(s['等级'])+'</td>';
+    }).join('');
+    var w = d['压力测试']['最坏情况'];
+    U.$('rkStressNote').textContent = '最坏情况：'+w['场景']+'（缓冲倍数 '+
+      U.f3(w['缓冲倍数'])+'，'+w['等级']+'）'+
+      (d['压力测试']['触发紧急任务']?' → 按 v8 设计自动触发红色预警与紧急会议任务。'
+        :' → 未触发紧急任务。')+'　'+d['压力测试']['口径'];
+    U.$('rkStressSrc').textContent = JSON.stringify(d['压力测试']['输入出处'],null,2);
+  }
+
+  function renderApproval(d){
+    var a = d['分级审批'];
+    U.rows2(U.$('rkAppr'), [
+      ['本次申请金额', U.money(a['金额'])],
+      ['月均业务规模', U.money(a['月均业务规模'])],
+      ['金额倍数', U.f3(a['金额倍数'])],
+      ['分界线1', a['分界线']['线1']],
+      ['分界线2', a['分界线']['线2']],
+      ['审批人', U.esc(a['审批人'])],
+      ['要求', U.esc(a['要求'])]
+    ]);
+    U.$('rkApprNote').textContent = a['口径']+'。分界线随企业规模自适应，不用绝对金额。';
+
+    U.$('rkTrack').innerHTML = (d['三态跟踪']['记录']||[]).map(function(r){
+      return '<tr><td>'+U.esc(r['对象'])+'</td><td class="num">'+U.money(r['未收'])+
+        '</td><td>'+U.esc(r['到账状态'])+'</td><td class="muted">'+U.esc(r['验证方式'])+
+        '</td><td>'+(r['状态']==='已化解'?U.badge('已化解','ok'):U.badge('观察中','warn'))+'</td>';
+    }).join('');
+    U.$('rkTrackNote').textContent = '规则：'+d['三态跟踪']['规则']+'。';
+
+    U.$('rkExc').innerHTML = (d['例外回溯']['部门统计']||[]).map(function(x){
+      var bad = (x['判定']||'').indexOf('异常')>=0;
+      return '<tr><td>'+U.esc(x['部门'])+'</td><td class="num">'+x['审批次数']+
+        '</td><td class="num">'+x['例外次数']+'</td><td class="num">'+U.f3(x['例外率'])+
+        '</td><td class="num">'+U.money(x['例外金额'])+'</td><td>'+
+        U.badge(x['判定'], bad?'err':'ok')+'</td><td>'+U.esc(x['动作'])+'</td>';
+    }).join('');
+    U.$('rkExcNote').textContent = '判定规则：'+d['例外回溯']['判定规则'].join('；')+
+      '。'+d['例外回溯']['说明'];
+  }
+
+  async function save(){
+    msg('正在保存留痕…');
+    try{
+      var r = await W.api.post(W.api.getBase().v8, '/api/v8/save',
+        {industry:U.$('rkInd').value, scenario:U.$('rkScn').value, amount:U.$('rkAmt').value});
+      msg(r.error ? ('保存失败：'+r.error)
+        : ('已提交留痕，请求编号 '+r.request_id+'，等级 '+r.level));
+      if(!r.error) await showLogs();
+    }catch(e){ msg('保存失败：'+e.message); }
+  }
+
+  async function showLogs(){
+    var rows = U.$('rcLogRows');
+    try{
+      var r = await W.api.get(W.api.getBase().v8, '/api/v8/logs');
+      if(r.error){ rows.innerHTML = '<tr><td colspan="9" class="muted">'+U.esc(r.error)+'</td></tr>'; return; }
+      rows.innerHTML = (r.logs||[]).map(function(l){
+        return '<tr><td class="mono">'+U.esc(l.request_id)+'</td><td>'+U.esc(l.industry)+
+          '</td><td>'+U.esc(l.scenario)+'</td><td class="num">'+U.f3(l.Q)+
+          '</td><td class="num">'+U.f3(l.D)+'</td><td class="num">'+U.f3(l.P)+'</td><td>'+
+          U.lampBadge(l['等级'])+'</td><td class="num">'+U.f3(l['缓冲倍数'])+
+          '</td><td class="muted">'+U.esc(l['时间'])+'</td>';
+      }).join('');
+    }catch(e){
+      rows.innerHTML = '<tr><td colspan="9" class="muted">未连接后端，无法读取留痕记录。</td></tr>';
+    }
+  }
+
+  function bind(){
+    U.$('rkRun').onclick = run;
+    U.$('rkSave').onclick = save;
+    U.$('rkLogs').onclick = showLogs;
+    U.$('rcLogs').onclick = showLogs;
+  }
+
+  return { init: function(){ bind(); loadMeta().then(run); } };
+})();
+
+/* ===========================================================================
+   模块 C：后端控制台（原「后端控制台 · 现金流工作台」）
+   只读展示：运行实例 / 服务端口 / 数据库 / 接口探测 / MCP / 推送通道。
+   =========================================================================== */
+W.modCN = (function(){
+  var U = W.util;
+
+  async function load(){
+    var d;
+    try{
+      d = await W.api.get('', '/api/console');
+    }catch(e){
+      U.$('cnChecked').textContent = '未连接后端，无法探测。';
+      ['cnRuntime','cnDbKv','cnMcpKv','cnNotify'].forEach(function(id){
+        U.$(id).innerHTML = '<div><span>状态</span><b class="muted">不可用</b></div>'; });
+      U.$('cnServices').innerHTML =
+        '<tr><td colspan="4" class="muted">未连接后端。</td></tr>';
+      U.$('cnEndpoints').innerHTML =
+        '<tr><td colspan="4" class="muted">未连接后端。</td></tr>';
+      U.$('cnDbRows').innerHTML = '<tr><td colspan="6" class="muted">—</td></tr>';
+      U.$('cnTools').innerHTML = '';
+      W.store.set('console', {online:false});
+      return;
+    }
+    render(d);
+    // 与本模块的在线探测结果合并，不要整体覆盖：两个请求并发返回，
+    // 谁后到就丢谁的字段，会让总览把「数据库已连接」显示成「未连接」。
+    var p0 = W.store.get('console') || {};
+    W.store.set('console', {online:true, partial:!!p0.partial,
+      listening:d.services.filter(function(s){
+      return s.listening; }).length, total:d.services.length,
+      db: !!(d.database&&d.database.connected)});
+  }
+
+  function render(d){
+    U.$('cnChecked').textContent = '本次探测时间：'+d.checked_at;
+    U.kv('cnRuntime', [
+      ['应用', d.runtime.app], ['进程号 PID', d.runtime.pid],
+      ['监听地址', d.runtime.bind], ['Python', d.runtime.python],
+      ['已运行', U.dur(d.runtime.uptime_seconds)], ['启动于', d.runtime.started_at]
+    ]);
+
+    U.$('cnServices').innerHTML = d.services.map(function(s){
+      return '<tr><td><span class="dot '+(s.listening?'up':'down')+'"></span>'+U.esc(s.name)+
+        '</td><td class="mono">'+U.esc(s.port)+'</td><td>'+
+        (s.listening?'<span style="color:var(--green)">在听</span>'
+          :'<span style="color:var(--red)">未监听</span>')+
+        '</td><td class="muted">'+U.esc(s.note)+'</td>';
+    }).join('');
+
+    var db = d.database||{};
+    U.$('cnDbSub').textContent = db.connected
+      ? ('已连接 '+db.engine+' · 库 '+db.name+' · 表 '+db.table)
+      : ('未连接：'+(db.detail||'未知原因'));
+    U.$('cnDbKv').innerHTML = db.connected
+      ? [['引擎',db.engine],['库名',db.name],['表名',db.table],['总记录数',db.rows],
+         ['账号',db.user],['地址',db.host+':'+db.port]]
+        .map(function(it){
+          return '<div><span>'+U.esc(it[0])+'</span><b>'+U.esc(it[1])+'</b></div>'; }).join('')
+      : '<div><span>状态</span><b style="color:var(--red)">不可用</b></div>';
+    U.$('cnDbRows').innerHTML = (db.recent&&db.recent.length)
+      ? db.recent.map(function(x){
+          return '<tr><td class="mono">'+U.esc(String(x.record_id).slice(0,8))+'…</td>'+
+            '<td class="mono">'+U.esc(x.request_id)+'</td><td class="mono">'+U.esc(x.period)+
+            '</td><td>'+U.esc(x.operation)+'</td><td class="num">'+
+            U.esc(x.closing==null?'—':x.closing)+'</td><td class="muted">'+
+            U.esc(x.stored_at)+'</td>'; }).join('')
+      : '<tr><td colspan="6" class="muted">表里还没有记录。</td></tr>';
+
+    U.$('cnEndpoints').innerHTML = d.endpoints.map(function(e){
+      return '<tr><td><span class="badge">'+U.esc(e.method)+'</span></td><td class="mono">'+
+        U.esc(e.path)+'</td><td class="muted">'+U.esc(e.note)+'</td><td style="text-align:right">'+
+        (e.probe?'<button data-path="'+U.esc(e.path)+'">测</button>'
+          :'<span class="muted">需令牌</span>')+'</td>';
+    }).join('');
+    U.$('cnEndpoints').querySelectorAll('button[data-path]').forEach(function(b){
+      b.onclick = function(){ probe(b.dataset.path); };
+    });
+
+    var m = d.mcp||{};
+    U.$('cnMcpSub').textContent = m.transport+' · 供千问办公或远程 Agent 连接';
+    U.kv('cnMcpKv', [['地址',m.url],['传输',m.transport],['工具数',(m.tools||[]).length],
+      ['认证',m.auth||'DNS 重绑定防护 + Host 白名单']]);
+    U.$('cnTools').innerHTML = (m.tools||[]).map(function(t){
+      return '<tr><td class="mono">'+U.esc(t.name)+'</td><td class="muted">'+
+        U.esc(t.note)+'</td>'; }).join('');
+
+    var n = d.notify||{};
+    U.$('cnNotify').innerHTML = [
+      ['钉钉', n.dingtalk?'已配置':'未配置', n.dingtalk?'':'muted'],
+      ['企业微信', n.wecom?'已配置':'未配置', n.wecom?'':'muted'],
+      ['发送策略', n.policy||'失败即报错，不假装成功','']
+    ].map(function(it){
+      return '<div><span>'+U.esc(it[0])+'</span><b'+(it[2]?' class="'+it[2]+'"':'')+'>'+
+        U.esc(it[1])+'</b></div>'; }).join('');
+  }
+
+  async function probe(path){
+    U.$('cnProbe').textContent = 'GET '+path+' …';
+    try{
+      var t0 = performance.now();
+      var r = await fetch(path, {cache:'no-store'});
+      var ms = Math.round(performance.now()-t0);
+      var text = await r.text();
+      try{ text = JSON.stringify(JSON.parse(text),null,2); }catch(e){}
+      if(text.length>1600) text = text.slice(0,1600)+'\n…（已截断）';
+      U.$('cnProbe').textContent = 'GET '+path+'\nHTTP '+r.status+' · '+ms+' ms\n\n'+text;
+    }catch(e){
+      U.$('cnProbe').textContent = 'GET '+path+'\n请求失败：'+e.message;
+    }
+  }
+
+  return { init: function(){ load(); } };
+})();
+
+/* ===========================================================================
+   模块 D：总览（新增的整合层）
+   它不自己算任何东西，只订阅 store，把两个分区的结论汇总到一屏。
+   =========================================================================== */
+W.modOV = (function(){
+  var U = W.util;
+
+  function renderTodo(){
+    var cf = W.store.get('cashflow');
+    var as = W.store.get('assessment');
+    var cn = W.store.get('console');
+    var asLevel = as ? as['融合判定']['等级'] : null;
+    var asRule  = as ? (as['融合判定']['规则ID']||'') : '';
+    var asName  = as ? as['受评对象'] : '';
+    var html = '';
+    html += '<tr><td>现金流计算</td><td>'+
+      (cf?'<span class="badge ok">已完成</span>':'<span class="badge">未运行</span>')+
+      '</td><td>'+(cf?('期间 '+U.esc(cf.period)+'，期末 '+U.money(cf.closing)+
+        '，差异 '+U.money(cf.difference)):'前往「现金流计算」分区点击「运行计算」。')+'</td></tr>';
+    html += '<tr><td>风险评估</td><td>'+
+      (asLevel?U.lampBadge(asLevel):'<span class="badge">未运行</span>')+
+      '</td><td>'+(asLevel?('受评 '+U.esc(asName)+'，依据规则 '+U.esc(asRule||'—'))
+        :'前往「风险评估」分区点击「运行评估」。')+'</td></tr>';
+    html += '<tr><td>后端状态</td><td>'+
+      (cn?(cn.online?'<span class="badge ok">已连接</span>':'<span class="badge warn">离线</span>')
+        :'<span class="badge">未知</span>')+
+      '</td><td>'+(cn?(cn.online?(cn.listening+'/'+cn.total+' 端口在听，数据库'+
+        (cn.db?'已连接':'未连接')):'未连接后端，当前展示内置快照。'):'正在检测。')+'</td></tr>';
+    U.$('ovTodo').innerHTML = html;
+  }
+
+  U.$('ovTodo').innerHTML = '';
+
+  W.store.on('cashflow', function(cf){
+    U.kv('ovCf', [
+      ['期间', cf.period],
+      ['期初', U.money(cf.opening)],
+      ['流入', U.money(cf.inflow)],
+      ['流出', U.money(cf.outflow)],
+      ['期末', U.money(cf.closing)],
+      ['差异', U.money(cf.difference), cf.matched?'':'muted']
+    ]);
+    U.$('ovCfNote').textContent = cf.matched ? '余额核对一致。' : '余额存在差异，待核实。';
+    renderTodo();
+  });
+
+  W.store.on('assessment', function(d){
+    var lv = d['融合判定']['等级'];
+    var lamp = U.$('ovLamp');
+    lamp.className = 'lamp '+lv;
+    lamp.textContent = lv;
+    U.$('ovLevel').textContent = '融合判定 '+lv+'　（受评：'+d['受评对象']+'）';
+    U.$('ovWhy').textContent = 'Q '+U.f3(d['第一层']['Q'])+' ｜ D '+U.f3(d['第二层']['D'])+
+      ' ｜ P '+U.f3(d['第三层']['P'])+' → '+lv;
+    U.$('ovRule').textContent = '依据规则 '+(d['融合判定']['规则ID']||'—')+
+      '：'+d['融合判定']['依据'];
+    U.kv('ovL3', [
+      ['Q 数据质量', U.f3(d['第一层']['Q'])],
+      ['D 判别得分', U.f3(d['第二层']['D'])],
+      ['P 舞弊概率', U.f3(d['第三层']['P'])],
+      ['融合等级', lv],
+      ['最终等级', d['最终等级']?d['最终等级']['等级']:lv]
+    ]);
+    var fin = d['最终等级'];
+    U.$('ovL3Note').textContent = fin
+      ? ('取严来源：'+fin['取严来源']+'。'+(fin['缓冲维度参与比较']===false?'缓冲维度未参与比较。':''))
+      : '尚未取严。';
+    renderTodo();
+  });
+
+  W.store.on('console', function(cn){
+    U.kv('ovCon', [
+      ['连接', cn.online?'在线':'离线'],
+      ['端口', cn.online?(cn.listening+'/'+cn.total):'—'],
+      ['数据库', cn.online?(cn.db?'已连接':'未连接'):'—']
+    ]);
+    U.$('ovConNote').textContent = cn.online ? '详见「后端控制台」分区。'
+      : '未连接后端，各分区展示内置快照。';
+    renderTodo();
+  });
+
+  return { init: function(){
+    U.$('ovCfNote').textContent = '尚未在「现金流计算」分区运行。';
+    U.$('ovL3Note').textContent = '尚未在「风险评估」分区运行。';
+    U.$('ovConNote').textContent = '正在检测后端。';
+  }};
+})();
+
+/* ===========================================================================
+   导航与全局装配
+   =========================================================================== */
+(function(){
+  var U = W.util;
+  var TITLES = {
+    ov: ['总览', '各模块共享同一计算内核，现金流分区算出的结果会直接流转到风险评估。'],
+    cf: ['现金流计算', '八表录入 → 三类现金流汇总 → 余额核对 → 结果留档。'],
+    rk: ['风险评估', '三层风控模型（数据质量门禁 → 财务健康判别 → 异常复核）+ 相对阈值 + 压力测试。'],
+    rc: ['留痕与回查', '保存写入隔离库，回查比对金额、来源与计算版本是否一致。'],
+    cn: ['后端控制台', '一台服务器上的全部后端组件，实际探测结果，不是示意图。']
+  };
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('#nav button'));
+
+  function show(tab){
+    buttons.forEach(function(b){
+      b.classList.toggle('on', b.dataset.tab === tab);
+    });
+    ['ov','cf','rk','rc','cn'].forEach(function(k){
+      U.$('pane-'+k).classList.toggle('on', k === tab);
+    });
+    var t = TITLES[tab] || TITLES.ov;
+    U.$('paneTitle').textContent = t[0];
+    U.$('paneSub').textContent = t[1];
+    // 切到控制台时按需刷新一次，避免首屏同时打太多请求
+    if(tab === 'cn') W.modCN.init();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  buttons.forEach(function(b){ b.onclick = function(){ show(b.dataset.tab); }; });
+
+  // 连接设置
+  U.$('btnConn').onclick = function(){
+    var box = U.$('connBox');
+    box.hidden = !box.hidden;
+    if(!box.hidden){
+      var b = W.api.getBase();
+      U.$('cfgMain').value = b.main;
+      U.$('cfgV8').value = b.v8;
+    }
+  };
+  U.$('cfgSave').onclick = function(){
+    W.api.setBase(U.$('cfgMain').value.trim(), U.$('cfgV8').value.trim());
+    U.$('cfgMsg').textContent = '已保存，正在重新连接…';
+    setTimeout(function(){ location.reload(); }, 300);
+  };
+  U.$('cfgReset').onclick = function(){
+    W.api.resetBase();
+    U.$('cfgMsg').textContent = '已恢复默认，正在重新连接…';
+    setTimeout(function(){ location.reload(); }, 300);
+  };
+
+  // 启动
+  W.modOV.init();
+  W.modCF.init();
+  W.modRK.init();
+  // 控制台数据不只供控制台分区使用：总览的「端口 x/5 在听、数据库已连接」
+  // 也取自它。原先只在切到控制台标签时才加载，总览便只能拿到探测带回的两个
+  // 字段，渲染成「undefined/undefined」与「未连接」。这里启动时先取一次，
+  // 切标签时仍会再刷新一次。
+  W.modCN.init();
+
+  // 后端探测：结果决定顶部徽标与是否显示离线横幅
+  W.api.probe().then(function(r){
+    var badge = U.$('connBadge');
+    if(r.main && r.v8){
+      badge.textContent = '后端已连接';
+      badge.className = 'badge ok';
+    }else if(r.main || r.v8){
+      badge.textContent = '部分后端已连接（'+(r.main?'主站':'—')+' / '+(r.v8?'V8':'—')+'）';
+      badge.className = 'badge warn';
+    }else{
+      badge.textContent = '未连接后端 · 内置快照';
+      badge.className = 'badge warn';
+      U.$('offlineBox').hidden = false;
+    }
+    // 同理：只更新探测得到的两个字段，保留 /api/console 带来的端口与数据库状态。
+    var p1 = W.store.get('console') || {};
+    W.store.set('console', {online:(r.main||r.v8), partial:!(r.main&&r.v8),
+      listening:p1.listening, total:p1.total, db:p1.db});
+  });
+})();
+
+window.W = W;   // 唯一对外暴露的全局
+})();
+</script>
+</body>
+</html>

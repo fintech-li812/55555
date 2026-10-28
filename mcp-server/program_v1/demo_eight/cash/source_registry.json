@@ -1,0 +1,37 @@
+{
+  "schema_version": "mfg-cash-source-registry.v1",
+  "tenant_id": "fixture-tenant",
+  "company_id": "fixture-manufacturing",
+  "period": "2026-08",
+  "source_revision": "synthetic-eight-evidence-v1",
+  "run_id": "synthetic-eight-binding-v1",
+  "origin": "offline_fixture",
+  "sources": [
+    {
+      "source_id": "bank-primary",
+      "role": "primary_actual",
+      "account_ids": [
+        "demo-bank-001"
+      ],
+      "period": "2026-08",
+      "complete": true,
+      "declared_zero": false
+    },
+    {
+      "source_id": "business-corroboration",
+      "role": "corroborating",
+      "account_ids": [
+        "demo-bank-001"
+      ],
+      "period": "2026-08"
+    },
+    {
+      "source_id": "business-docs",
+      "role": "noncash",
+      "account_ids": [
+        "demo-bank-001"
+      ],
+      "period": "2026-08"
+    }
+  ]
+}

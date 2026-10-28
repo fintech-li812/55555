@@ -1,0 +1,52 @@
+{
+  "schema_version": "mfg-balance-observations.v1",
+  "tenant_id": "fixture-tenant",
+  "company_id": "fixture-manufacturing",
+  "period": "2026-08",
+  "source_revision": "fixture-source-v1",
+  "run_id": "fixture-run-202608",
+  "origin": "offline_fixture",
+  "unit": "CNY",
+  "records": [
+    {
+      "source_record_id": "A-opening",
+      "account_id": "fixture-account-A",
+      "kind": "opening",
+      "amount": "60000.00",
+      "unit": "CNY",
+      "as_of": "2026-07-31",
+      "record_id": "observation-A-opening",
+      "evidence_id": "fixture-statement-A"
+    },
+    {
+      "source_record_id": "A-closing",
+      "account_id": "fixture-account-A",
+      "kind": "closing",
+      "amount": "90000.00",
+      "unit": "CNY",
+      "as_of": "2026-08-31",
+      "record_id": "observation-A-closing",
+      "evidence_id": "fixture-statement-A"
+    },
+    {
+      "source_record_id": "B-opening",
+      "account_id": "fixture-account-B",
+      "kind": "opening",
+      "amount": "40000.00",
+      "unit": "CNY",
+      "as_of": "2026-07-31",
+      "record_id": "observation-B-opening",
+      "evidence_id": "fixture-statement-B"
+    },
+    {
+      "source_record_id": "B-closing",
+      "account_id": "fixture-account-B",
+      "kind": "closing",
+      "amount": "50000.00",
+      "unit": "CNY",
+      "as_of": "2026-08-31",
+      "record_id": "observation-B-closing",
+      "evidence_id": "fixture-statement-B"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+[Unit]
+Description=Cashflow Risk Workbench - public HTTP (page + API)
+Documentation=file:///opt/cashflow/DEPLOY.md
+After=network-online.target mysql.service
+Wants=network-online.target mysql.service
+
+[Service]
+Type=simple
+User=cfrun
+Group=cfrun
+WorkingDirectory=/opt/cashflow/deploy
+EnvironmentFile=/opt/cashflow/deploy/.env
+ExecStart=/opt/cashflow/venv/bin/python /opt/cashflow/deploy/serve.py
+Restart=always
+RestartSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

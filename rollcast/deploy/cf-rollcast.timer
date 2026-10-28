@@ -1,0 +1,14 @@
+[Unit]
+Description=Run the rolling cash-flow forecast weekly
+Documentation=file:///opt/cashflow/rollcast/README.md
+
+[Timer]
+# Monday 04:20 local. Off the hour so it clears the 03:17 database backup and
+# any certbot renewal, and early enough that the result is waiting when people
+# arrive.
+OnCalendar=Mon *-*-* 04:20:00
+RandomizedDelaySec=600
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,59 @@
+{
+  "schema_version": "mfg-account-balance-binding.v1",
+  "status": "ready",
+  "scope_ready": true,
+  "balance_binding_ready": true,
+  "can_save_source_result": false,
+  "can_claim_full_cashflow": false,
+  "native_sheet_verified": false,
+  "source_authenticity_verified": false,
+  "scope_summary": {
+    "reporting_entity_id": "synthetic-entity",
+    "included_accounts": 1,
+    "excluded_accounts": 0,
+    "opening_as_of": "2026-07-31",
+    "closing_as_of": "2026-08-31",
+    "unit": "CNY"
+  },
+  "balance_totals": {
+    "opening": "100000.00",
+    "independent_closing": "177000.00",
+    "unit": "CNY"
+  },
+  "accounts": [
+    {
+      "account_id": "demo-bank-001",
+      "opening": "100000.00",
+      "independent_closing": "177000.00"
+    }
+  ],
+  "issues": [],
+  "evidence_checks": [
+    {
+      "evidence_id": "synthetic-opening",
+      "sha256": "e1ebef5574a4389ef12f278f98405caf631adbd982d78f5791af46028be8af2f",
+      "hash_matches": true,
+      "independence": "operator_registration_only_not_independent_authentication"
+    },
+    {
+      "evidence_id": "synthetic-closing",
+      "sha256": "25a87ea00112f930fe2aa3d5893779258aaa544a438e87f03f87da52da0ddf37",
+      "hash_matches": true,
+      "independence": "operator_registration_only_not_independent_authentication"
+    }
+  ],
+  "mutations_performed": false,
+  "context": {
+    "tenant_id": "fixture-tenant",
+    "company_id": "fixture-manufacturing",
+    "period": "2026-08",
+    "source_revision": "synthetic-eight-evidence-v1",
+    "run_id": "synthetic-eight-binding-v1"
+  },
+  "fixture": true,
+  "binding_sha256": "bde53dc129a7709bc5a8cf7d5be97a8f3ceb89433fddc9bbcbfd3f3c45f8bebc",
+  "limitations": [
+    "Source hashes bind operator-selected records; authenticity and authority are not independently verified.",
+    "No cashflow completeness, native recalculation or database save is authorized by this binding."
+  ]
+}

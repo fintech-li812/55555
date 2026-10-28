@@ -1,0 +1,22 @@
+{
+  "_说明": "模块三 · 能力开关。true=人工确认开启（仅在数据覆盖满足时生效），false=人工关闭，缺省=按八表覆盖自动判定。八表未覆盖的能力即使置 true 也会被拒绝启用。",
+  "_八表清单": ["企业基本信息", "现金流水", "应收账款", "筹资信息", "投资现金流", "银行流水", "行业参数", "数据字典"],
+  "switches": {
+    "cashflow.calculate": true,
+    "risk.assess_v8": true,
+    "risk.stress_test": true,
+    "quality.check": true,
+    "risk.deada_score": true,
+    "risk.rf_predict": true,
+    "tracking.evaluate": true,
+    "clean.run_batch": true,
+    "acc.submit": true,
+    "acc.review": true,
+    "acc.confirm": true,
+    "acc.urge": true,
+    "acc.sweep": true,
+    "credit.rating": false,
+    "supply_chain.risk": false,
+    "inventory.risk": false
+  }
+}

@@ -1,0 +1,16 @@
+[Unit]
+Description=Cashflow Risk Workbench - MySQL logical backup
+Documentation=file:///opt/cashflow/DEPLOY.md
+After=mysql.service
+Wants=mysql.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/opt/cashflow/deploy/mysql_backup.sh
+# Backups must never be swapped out; on this 1.7 GiB box an OOM-killed dump
+# would otherwise be logged as a plain failure.
+OOMPolicy=stop
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

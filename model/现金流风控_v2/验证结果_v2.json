@@ -1,0 +1,91 @@
+{
+  "version": "2.0.0",
+  "date": "2026-10-22",
+  "overall_assessment": "原模型需修订；v2实现已测试，真实效果未验证",
+  "source_files": [
+    {
+      "name": "三层风控模型公式与算法实现.md",
+      "size": 30273,
+      "sha256": "ad30b80c12ac94af1d162fe648f8f5da65354dd1a76c6d7db0ac9dddadf0363d"
+    },
+    {
+      "name": "三层模型验证结果.json",
+      "size": 2141,
+      "sha256": "8442ef5ca3e8e6d8c597bfda6a5aa510834a209e3610b6538ecba3dfa90792a9"
+    }
+  ],
+  "software_tests": {
+    "run": true,
+    "passed": 19,
+    "failed": 0,
+    "exit_code": 0,
+    "nature": "unit and synthetic integration tests, not real business validation"
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "numpy": "2.5.1",
+    "scipy": "1.18.1",
+    "scikit_learn": "1.9.0"
+  },
+  "legacy_manufacturing_recalculation": {
+    "input": "15 rounded ratios printed in original document, not raw annual report",
+    "Q_legacy": 0.7,
+    "D_legacy": -0.055489574272185926,
+    "original_document_D": -0.05549,
+    "D_difference_using_printed_inputs": 4.257278140712417e-07,
+    "note": "输入为文档显示舍入值，不用于承诺1e-9原始数据等价",
+    "P_reproduced": false,
+    "P_reason": "original forest missing"
+  },
+  "synthetic_scenarios": {
+    "未验证的正常计划": {
+      "input_type": "synthetic",
+      "status": "黄灯",
+      "baseline_first_breach_week": null,
+      "stress_gap": 0.0,
+      "gap_cvar95": 0.0,
+      "probability_shortfall_scenario": 0.0
+    },
+    "付款压力": {
+      "input_type": "synthetic",
+      "status": "红灯",
+      "baseline_first_breach_week": 3,
+      "stress_gap": 1022.0,
+      "gap_cvar95": 493.148,
+      "probability_shortfall_scenario": 1.0
+    },
+    "对账失败": {
+      "input_type": "synthetic",
+      "status": "待复核",
+      "baseline_first_breach_week": null,
+      "stress_gap": null,
+      "gap_cvar95": null,
+      "probability_shortfall_scenario": null
+    }
+  },
+  "real_data_validation": {
+    "completed": false,
+    "original_oob_0_9946_reproduced": false,
+    "original_training_accuracy_0_9755_reproduced": false,
+    "cash_shortfall_accuracy": null,
+    "improvement_over_original": null,
+    "missing": [
+      "368-company panel",
+      "original RF forest",
+      "original coefficients JSON",
+      "workbooks and original amount samples",
+      "dated historical forecasts and realized flows"
+    ]
+  },
+  "external_actions": {
+    "main_project_modified": false,
+    "notifications_sent": false,
+    "corporate_data_uploaded": false
+  },
+  "cli_integration": {
+    "exit_code": 0,
+    "status": "黄灯",
+    "result": "demo_result.json",
+    "input_sha256_recorded": true
+  }
+}

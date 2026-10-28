@@ -1,0 +1,13 @@
+[Unit]
+Description=Run V8 job: 跨企业经验迁移（季度）
+Documentation=file:///opt/cashflow/deploy/v8/README-jobs.md
+
+[Timer]
+# 错峰说明：00:30 / 06:00 / 06:20 / 08:00 / 08:20 依次排开，
+# 避开 03:17 数据库备份、04:20 滚动预测与证书续期的窗口。
+OnCalendar=*-01,04,07,10-01 08:20:00
+RandomizedDelaySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target

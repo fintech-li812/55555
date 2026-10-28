@@ -1,0 +1,25 @@
+{
+  "_comment": "生产配置。键名与 config.py 的 DEFAULTS 一致；未知键会被拒绝。",
+
+  "draws": 5000,
+  "seed": 42,
+  "block_length": 4,
+  "horizon": 13,
+
+  "detect_seasonality": true,
+  "max_period": 26,
+  "min_strength": 0.30,
+
+  "debias": "auto",
+  "alpha": 0.05,
+
+  "warmup": 26,
+  "window": 104,
+
+  "max_runtime_seconds": 600,
+  "retries": 3,
+  "retry_backoff_seconds": 2.0,
+
+  "persist": true,
+  "dry_run": false
+}

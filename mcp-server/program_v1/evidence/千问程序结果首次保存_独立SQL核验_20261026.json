@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "verification": "independent SQL read-only transaction",
+  "request_id": "qwen-program-20261026-first-01",
+  "matched_request_rows": 1,
+  "matches_current_program_calculation": true,
+  "amounts": {
+    "net": "40000.00",
+    "inflow": "130000.00",
+    "closing": "140000.00",
+    "opening": "100000.00",
+    "outflow": "90000.00",
+    "difference": "0.00",
+    "actual_closing": "140000.00"
+  },
+  "receipt": {
+    "schema_version": "mfg-evidence.v1",
+    "kind": "receipt",
+    "operation": "save_cashflow_result",
+    "tenant_id": "fixture-tenant",
+    "company_id": "fixture-manufacturing",
+    "period": "2026-08",
+    "source_revision": "program-00613baa679620b938c0",
+    "run_id": "calc-59c95872d9bdca4dba547fd42d323f42",
+    "request_id": "qwen-program-20261026-first-01",
+    "record_id": "5ad6af0b-d85a-448f-808f-c18aad1e9eda",
+    "payload_sha256": "67f2dd22e0684e89b1564319e9d8b9b2358f5f55acfdccc2fd2bb6919187fac7",
+    "stored_at": "2026-10-26T14:42:09.702105+00:00",
+    "status": "committed"
+  },
+  "origin": "program_calculation",
+  "data_type": "SYNTHETIC",
+  "source_snapshot": "00613baa679620b938c009c20bb56f83baad14ef28bf5124b4db31dd5fdd9691",
+  "algorithm_sha256": "17d3cfec5bc4051c4448010f644833eb93c033c519e86028d05c02daac1d266b",
+  "database_writes_performed_by_this_check": false,
+  "production_accessed": false,
+  "qwen_execution_evidence": "User reported tool save and exact query; SQL independently confirms stored payload."
+}
