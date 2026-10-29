@@ -314,6 +314,33 @@ details summary{cursor:pointer;font-size:13px;color:var(--blue);padding:6px 0}
       <div><label for="rkAmt">本次申请金额（元，用于分级审批）</label><input id="rkAmt" type="number" value="120000"></div>
       <div><label for="rkNpg">每组样本量（三层模型样本池）</label>
         <select id="rkNpg"><option value="20">20（默认）</option><option value="35">35</option><option value="50">50</option></select></div>
+      <div><label for="rkAlgo">算法版本（三版共用同一融合表 48 格）</label>
+        <select id="rkAlgo">
+          <option value="v8">v8 基线（χ² 临界值 + 全特征森林）</option>
+          <option value="ra-next-0.1">ra-next-0.1（MC 精确检验 + 校准）</option>
+          <option value="v1">v1 生产版（+对偶证书 +证据只升不降 +模型缓存）</option>
+        </select></div>
+      <div><label for="rkEvi">证据模式（绿灯放行门槛）</label>
+        <select id="rkEvi">
+          <option value="strict">严格（默认）：证据不足不放行绿灯</option>
+          <option value="loose">宽松：恢复三档判别，复核标记仍在</option>
+        </select></div>
+      <div><label for="rkQif">Q 参与融合判别</label>
+        <select id="rkQif">
+          <option value="1">是（默认，原有逻辑）</option>
+          <option value="0">否：Q 仅作数据质量报告</option>
+        </select></div>
+      <div><label for="rkBen">Benford 适用性声明</label>
+        <select id="rkBen">
+          <option value="">未声明（默认）</option>
+          <option value="1">已声明适用</option>
+          <option value="0">已声明不适用（Q 不进融合表 → 红灯）</option>
+        </select></div>
+      <div><label for="rkStab">D 稳定性 bootstrap（+1~2 秒）</label>
+        <select id="rkStab"><option value="0">关闭（默认）</option><option value="1">开启</option></select></div>
+      <!-- 生效开关回显：每次评估后由服务端回填，用来确认「我以为的口径」
+           与「服务端实际走的口径」一致，避免配置漂移没人发现 -->
+      <div id="rkSwitches" class="muted" style="grid-column:1/-1;font-size:12px"></div>
     </div>
     <div class="acts">
       <button id="rkRun" class="primary">运行评估</button>
@@ -976,7 +1003,15 @@ W.modRK = (function(){
     st.busy = true;
     msg('正在运行三层模型与压力测试…');
     var p = new URLSearchParams({industry:U.$('rkInd').value, scenario:U.$('rkScn').value,
-      amount:U.$('rkAmt').value, n:U.$('rkNpg').value});
+      amount:U.$('rkAmt').value, n:U.$('rkNpg').value, algo:U.$('rkAlgo').value});
+    // 开关只对 v1 有意义：其它两版没有证据层与 Q 退出判别的实现。
+    // 但 URL 里带上也不影响——服务端对 v8 会直接忽略这些键。
+    if(U.$('rkAlgo').value === 'v1'){
+      p.set('evidence', U.$('rkEvi').value);
+      p.set('q_in_fusion', U.$('rkQif').value);
+      if(U.$('rkBen').value !== '') p.set('benford', U.$('rkBen').value);
+      if(U.$('rkStab').value === '1') p.set('stability', '1');
+    }
     var d;
     try{
       d = await W.api.get(W.api.getBase().v8, '/api/v8/assess?'+p);
@@ -999,9 +1034,14 @@ W.modRK = (function(){
     U.$('rkRaw').textContent = JSON.stringify(d,null,2);
 
     // 数据来源声明
+    var algoName = d['算法版本'] || '—';
+    var algoNote = (d['声明'] && d['声明']['算法口径']) ? U.esc(d['声明']['算法口径']) : '';
+    var qNote = (d['第一层'] && d['第一层']['阈值适用性'])
+      ? '<br><span style="color:#b45309">阈值提示：'+U.esc(d['第一层']['阈值适用性'])+'</span>' : '';
     U.$('rkDeclare').innerHTML = '<b>数据来源声明：</b>'+
       U.esc(d['声明']['现金流来源'])+' ｜ 财务比率：'+U.esc(d['声明']['财务比率来源'])+'。<br>'+
-      U.esc(d['声明']['不启用声明'])+'。';
+      U.esc(d['声明']['不启用声明'])+'。<br>'+
+      '<b>算法版本：</b>'+U.esc(algoName)+(algoNote ? '（'+algoNote+'）' : '')+qNote;
 
     // 灯
     var fin = d['最终等级'], lv = fin ? fin['等级'] : d['融合判定']['等级'];
@@ -1014,9 +1054,34 @@ W.modRK = (function(){
       '；取较严格者 → '+lv+'（取自：'+((fin&&fin['取严来源'])||'—')+'）';
     U.$('rkFormula').textContent = '判定公式：'+d['融合判定']['公式']+
       '　｜　'+((fin&&fin['口径'])||'');
+    var ev = (fin && fin['证据']) ? fin['证据'] : null;
+    if(ev){
+      var evl = ev['各层']||{};
+      U.$('rkFormula').innerHTML +=
+        '<br><span style="color:#b45309">证据等级：Q '+U.esc(evl['Q']||'—')+
+        ' / D '+U.esc(evl['D']||'—')+' / P '+U.esc(evl['P']||'—')+
+        '（整体 '+U.esc(ev['整体']||'—')+'）'+
+        (ev['复核必需'] ? ' · 需人工复核' : '')+'<br>'+U.esc(ev['说明']||'')+'</span>';
+    }
     U.$('rkQ').textContent = U.f3(d['第一层']['Q']);
     U.$('rkD').textContent = U.f3(d['第二层']['D']);
     U.$('rkP').textContent = U.f3(d['第三层']['P']);
+
+    // 生效开关回显：直接展示服务端实际采用的口径与来源，
+    // 让「前端以为的」与「后端实际走的」不一致时能立刻看见。
+    var sw = d['生效开关'], swEl = U.$('rkSwitches');
+    if(sw && swEl){
+      var src = sw['取值来源'] || {};
+      swEl.innerHTML = '本次生效开关：'+U.esc([
+        '算法 '+sw['算法版本'], '证据 '+(sw['证据模式']==='strict'?'严格':'宽松'),
+        'Q参与判别 '+(sw['Q参与融合判别']?'是':'否（仅报告）'),
+        'Benford '+(sw['Benford适用性']===null?'未声明':(sw['Benford适用性']?'已论证':'不适用')),
+        '样本池 '+sw['每组样本量']+'/组', '树 '+sw['森林树数'],
+        '缓存 '+(sw['池级缓存']?'开':'关'), '稳定性 '+(sw['稳定性bootstrap']?'开':'关')
+      ].join(' ｜ '))+
+      '<br>来源：'+U.esc(Object.keys(src).map(function(k){
+        return k+'←'+src[k]; }).join('；'));
+    }else if(swEl){ swEl.textContent = ''; }
 
     renderCashflow();
     renderThreshold(d);
@@ -1183,7 +1248,10 @@ W.modRK = (function(){
     msg('正在保存留痕…');
     try{
       var r = await W.api.post(W.api.getBase().v8, '/api/v8/save',
-        {industry:U.$('rkInd').value, scenario:U.$('rkScn').value, amount:U.$('rkAmt').value});
+        {industry:U.$('rkInd').value, scenario:U.$('rkScn').value, amount:U.$('rkAmt').value,
+         algo:U.$('rkAlgo').value,
+         evidence:U.$('rkEvi').value, q_in_fusion:U.$('rkQif').value,
+         benford:U.$('rkBen').value, stability:U.$('rkStab').value});
       msg(r.error ? ('保存失败：'+r.error)
         : ('已提交留痕，请求编号 '+r.request_id+'，等级 '+r.level));
       if(!r.error) await showLogs();
@@ -1210,6 +1278,11 @@ W.modRK = (function(){
   function bind(){
     U.$('rkRun').onclick = run;
     U.$('rkSave').onclick = save;
+    // v1 的三态选项只在选中 v1 时出现：这些是业务口径开关，
+    // 不该在别的算法下摆出来让人误以为生效。
+    U.$('rkAlgo').onchange = function(){
+      U.$('v1Opts').style.display = (U.$('rkAlgo').value === 'v1') ? '' : 'none';
+    };
     U.$('rkLogs').onclick = showLogs;
     U.$('rcLogs').onclick = showLogs;
   }
