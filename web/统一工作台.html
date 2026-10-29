@@ -184,6 +184,12 @@ details summary{cursor:pointer;font-size:13px;color:var(--blue);padding:6px 0}
 <div class="card" id="connBox" hidden>
   <h2>后端连接设置</h2>
   <p class="muted">两个后端各自独立：主站（现金流计算/控制台）与 V8（三层风控）。留空表示与当前页面同源。</p>
+  <p class="muted" style="margin-top:6px">
+    注意：填外部地址（如 http://10.0.0.5:8010）时，浏览器会被主站下发的
+    CSP <code>connect-src 'self'</code> 拦住，控制台只报「blocked by CSP」。
+    确需时请在服务端设 <code>WORKBENCH_CONNECT_SRC</code>（逗号分隔）后重启主站，
+    而不是自行放宽前端策略。
+  </p>
   <div class="formgrid" style="margin-top:10px">
     <div><label for="cfgMain">主站根路径</label><input id="cfgMain" placeholder="留空=同源，如 /"></div>
     <div><label for="cfgV8">V8 根路径</label><input id="cfgV8" placeholder="如 /v8"></div>
@@ -640,15 +646,55 @@ W.store = (function(){
 })();
 
 /* ---------------------------------------------------------------------------
-   3. 统一请求层
-      - base.main: 主站（现金流计算 + 控制台）
-      - base.v8  : V8 三层风控（独立服务）
-      任一请求失败不向上抛，而是返回 {offline:true}，由调用方决定如何降级。
+   3. 统一请求层：前后端联通的**唯一出口**
+
+   所有后端地址、路径、超时、重试策略都收敛在 CFG 里；业务模块一律调用
+   W.api.xxx()，不再各自拼 URL。新增/修改接口时只需动 CFG.endpoints 一处。
+
+   这个封装处理了三个实际踩过的坑：
+
+   (1) 服务端会把「降级结果」放在非 2xx 状态码里返回。
+       例如数据库不可用时 /api/v8/save 仍返回 503，但响应体里带着
+       level/Q/D/P 完整结论——留痕失败不等于这次评估作废。
+       旧实现看到 !res.ok 就 throw 并且丢掉响应体，于是用户明明算出了结果，
+       界面却只显示「HTTP 503，保存失败」。
+       现在的规则：非 2xx 但响应体里有业务数据 → 视为降级，照常交付。
+
+   (2) 服务重启会重新生成会话令牌（secrets.token_urlsafe），旧页面的令牌
+       立即失效，此后所有 POST 都是 403 session_required。这里单独识别出来，
+       提示「请刷新页面」，而不是让用户猜为什么保存不了。
+
+   (3) 没有超时的话，后端一挂住页面就永远停在「正在运行…」。
+       用 AbortController 兜住超时；网络抖动与 5xx 做有限重试，
+       4xx 一律不重试（客户端问题，重试没有意义）。
    --------------------------------------------------------------------------- */
 W.api = (function(){
   var token = (document.querySelector('meta[name="workbench-token"]')||{}).content || '';
   // 令牌未被服务端替换，说明页面不是由工作台服务提供的 → 必然连不上后端
   var served = token !== '__CSRF_TOKEN__';
+
+  var CFG = {
+    // 一次 v8 评估含随机森林与压力测试，实测 0.3~0.6 秒；
+    // 20 秒是给冷启动和慢机器留的余量，再长就该让用户知道卡住了。
+    timeoutMs: 20000,
+    retry: {times: 2, delayMs: 500, maxDelayMs: 3000},
+    // 接口清单：新增后端接口时只在这里加一行，调用方写法不变
+    endpoints: {
+      mainStatus:    '/api/status',
+      mainSources:   '/api/sources',
+      mainCalculate: '/api/calculate',
+      mainSave:      '/api/save',
+      mainQuery:     '/api/query',
+      mainAudit:     '/api/audit',
+      mainConsole:   '/api/console',
+      v8Health:      '/api/v8/health',
+      v8Industries:  '/api/v8/industries',
+      v8Scenarios:   '/api/v8/scenarios',
+      v8Assess:      '/api/v8/assess',
+      v8Save:        '/api/v8/save',
+      v8Logs:        '/api/v8/logs'
+    }
+  };
 
   var base = {main:'', v8:'/v8'};
   try{
@@ -656,46 +702,139 @@ W.api = (function(){
     if(saved){ base.main=saved.main||''; base.v8=saved.v8||'/v8'; }
   }catch(e){}
 
-  function url(root,path){
-    // root 为 '' 时直接用 path（同源）；否则拼接成 root+path
-    return (root||'') + path;
+  /** 统一的错误对象：保留状态码与响应体，调用方才能区分
+      参数错误(400) / 会话失效(403) / 服务故障(500) / 连不上(0)。 */
+  function ApiError(message, status, body, code){
+    var e = new Error(message);
+    e.status = status; e.body = body||null; e.code = code||'';
+    e.offline = (status === 0);
+    return e;
   }
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+  /** 带超时的一次请求。超时走 AbortController，
+      统一转成 status=0 的 ApiError，上层按「连不上」处理。 */
+  function fetchOnce(u, opt){
+    var ctrl = new AbortController();
+    var timer = setTimeout(function(){ ctrl.abort(); }, CFG.timeoutMs);
+    var o = {};
+    for(var k in opt){ if(Object.prototype.hasOwnProperty.call(opt,k)) o[k]=opt[k]; }
+    o.signal = ctrl.signal;
+    return fetch(u, o).then(function(r){ clearTimeout(timer); return r; },
+      function(err){ clearTimeout(timer); throw err; });
+  }
+
+  /** 响应体里有没有真正的业务数据？只有 error/detail 的算失败而不是降级。 */
+  function hasPayload(b){
+    if(!b || typeof b!=='object') return false;
+    var keys = Object.keys(b);
+    if(!keys.length) return false;
+    return !(keys.length===1 && ('error' in b || 'detail' in b));
+  }
+
+  function headersOf(json){
+    var h = {'X-Workbench-Token': token};
+    // 同源时自定义头不会触发预检；若把 base 改成外部地址则后端必须开 CORS，
+    // 且主站下发的 CSP connect-src 'self' 也会拦住外域请求。
+    if(json) h['Content-Type'] = 'application/json';
+    return h;
+  }
+
   async function call(root, path, opt){
     if(!served && !root){
       // 页面由静态方式打开且未配置外部地址：没必要发注定失败的请求
       var e0 = new Error('offline'); e0.offline = true; throw e0;
     }
-    var res = await fetch(url(root,path), opt);
-    var body = await res.json().catch(function(){ return {}; });
-    if(!res.ok) throw new Error(body.detail||body.error||('HTTP '+res.status));
-    return body;
+    var u = (root||'') + path;
+    var times = (opt && opt.method === 'POST') ? 1 : (CFG.retry.times + 1);
+    var attempt = 0, lastErr = null;
+    while(attempt < times){
+      attempt++;
+      try{
+        var res = await fetchOnce(u, opt);
+        var body = await res.json().catch(function(){ return {}; });
+        if(res.ok) return body;
+        if(res.status >= 500 && hasPayload(body)){
+          // 降级：服务端把结论带回来了，别把它当成失败丢掉
+          body.__degraded = true;
+          body.__reason = body['原因'] || body.detail || body.error || '';
+          return body;
+        }
+        if(res.status === 403 && body && body.error === 'session_required'){
+          throw ApiError('服务已重启，会话令牌失效，请刷新页面后重试',
+                         403, body, 'session_expired');
+        }
+        // 4xx 是客户端问题，重试也不会变好
+        if(res.status < 500){
+          throw ApiError(body.detail || body.error || ('HTTP '+res.status),
+                         res.status, body, 'http_'+res.status);
+        }
+        lastErr = ApiError(body.detail || body.error || ('HTTP '+res.status),
+                           res.status, body, 'server_error');
+        if(attempt >= times) throw lastErr;
+        await sleep(Math.min(CFG.retry.delayMs*attempt, CFG.retry.maxDelayMs));
+      }catch(e){
+        if(e && e.status !== undefined) throw e;   // 已经是 ApiError，直接上抛
+        lastErr = ApiError(
+          (e && e.name === 'AbortError') ? ('请求超时（超过 '+CFG.timeoutMs+'ms）')
+                                         : (e && e.message) || '网络不可用',
+          0, null, 'network');
+        if(attempt >= times) throw lastErr;
+        await sleep(Math.min(CFG.retry.delayMs*attempt, CFG.retry.maxDelayMs));
+      }
+    }
+    throw lastErr || ApiError('未知错误', 0, null, 'unknown');
   }
+
+  function get(root, path){
+    return call(root, path, {cache:'no-store', headers: headersOf(false)});
+  }
+  function post(root, path, data){
+    return call(root, path, {method:'POST', headers: headersOf(true),
+                             body: JSON.stringify(data)});
+  }
+
   return {
     served: served,
+    cfg: CFG,
     getBase: function(){ return base; },
     setBase: function(m,v){ base.main=m; base.v8=v;
       try{ localStorage.setItem('wb_conn', JSON.stringify({main:m,v8:v})); }catch(e){}
     },
     resetBase: function(){ base={main:'',v8:'/v8'};
       try{ localStorage.removeItem('wb_conn'); }catch(e){} },
-    get:  function(root, path){ return call(root, path, {cache:'no-store'}); },
-    post: function(root, path, data){
-      return call(root, path, {
-        method:'POST',
-        headers:{'Content-Type':'application/json','X-Workbench-Token':token},
-        body: JSON.stringify(data)
-      });
-    },
+    // 底层方法保留：排查问题时方便直接打任意路径
+    get: get, post: post,
+
+    // ---- 业务接口：调用方一律走这里，URL 只在 CFG.endpoints 里维护 ----
+    status:    function(){ return get(base.main, CFG.endpoints.mainStatus); },
+    sources:   function(){ return get(base.main, CFG.endpoints.mainSources); },
+    calculate: function(id){ return get(base.main,
+      CFG.endpoints.mainCalculate+'?source_id='+encodeURIComponent(id)); },
+    audit:     function(id){ return get(base.main,
+      CFG.endpoints.mainAudit+'?source_id='+encodeURIComponent(id)); },
+    saveMain:  function(d){ return post(base.main, CFG.endpoints.mainSave, d); },
+    queryMain: function(d){ return post(base.main, CFG.endpoints.mainQuery, d); },
+    console:   function(){ return get(base.main, CFG.endpoints.mainConsole); },
+
+    industries: function(){ return get(base.v8, CFG.endpoints.v8Industries); },
+    scenarios:  function(){ return get(base.v8, CFG.endpoints.v8Scenarios); },
+    health:     function(){ return get(base.v8, CFG.endpoints.v8Health); },
+    assess:     function(qs){ return get(base.v8,
+      CFG.endpoints.v8Assess + (qs ? ('?'+qs) : '')); },
+    saveV8:     function(d){ return post(base.v8, CFG.endpoints.v8Save, d); },
+    logs:       function(){ return get(base.v8, CFG.endpoints.v8Logs); },
+
     /** 探测后端是否可达，供页面顶部状态与离线提示使用 */
     probe: async function(){
       // 两个探测并行发起。串行时徽标要等第二个返回才更新，会明显滞后于
       // 已经拿到数据的总览卡片，看着像「没连上」；并行后两者同时完成。
-      var r = {v8:false, main:false};
+      var r = {v8:false, main:false, reason:''};
       await Promise.all([
-        call(base.main, '/api/status', {cache:'no-store'})
-          .then(function(){ r.main = true; }, function(){}),
-        call(base.v8, '/api/v8/industries', {cache:'no-store'})
-          .then(function(){ r.v8 = true; }, function(){})
+        get(base.main, CFG.endpoints.mainStatus)
+          .then(function(){ r.main = true; }, function(e){ r.reason = r.reason || (e && e.message) || ''; }),
+        get(base.v8, CFG.endpoints.v8Industries)
+          .then(function(){ r.v8 = true; }, function(e){ r.reason = r.reason || (e && e.message) || ''; })
       ]);
       return r;
     }
@@ -758,8 +897,7 @@ W.modCF = (function(){
     clearResult();
     msg('程序正在读取已登记来源并计算。');
     try{
-      st.calc = await W.api.get('', '/api/calculate?source_id='+
-        encodeURIComponent(U.$('cfSource').value));
+      st.calc = await W.api.calculate(U.$('cfSource').value);
     }catch(e){
       // 离线或未连上：用内置快照，并如实标注来源
       st.calc = JSON.parse(JSON.stringify(SNAPSHOT.cashflow));
@@ -850,7 +988,7 @@ W.modCF = (function(){
     msg('正在读取原始八表并执行已列检查。');
     var err = '';
     try{
-      st.audit = await W.api.get('', '/api/audit?source_id=manufacturing_sample_v1');
+      st.audit = await W.api.audit('manufacturing_sample_v1');
     }catch(e){ err = e.message || ''; }
     // 区分「连不上后端」与「后端明确返回了不可用」：
     // 前者是网络问题，后者通常是样本来源未绑定，提示必须能区分。
@@ -883,7 +1021,7 @@ W.modCF = (function(){
   async function loadSources(){
     var data;
     try{
-      data = await W.api.get('', '/api/sources');
+      data = await W.api.sources();
     }catch(e){
       data = SNAPSHOT.sources;
     }
@@ -900,7 +1038,7 @@ W.modCF = (function(){
   async function save(){
     if(!st.result) return;
     try{
-      var out = await W.api.post('', '/api/save',
+      var out = await W.api.saveMain(
         {result: st.result, request_id: U.$('rcReq').value});
       st.receipt = out;
       U.$('rcReceipt').textContent = out.status==='committed'
@@ -913,7 +1051,7 @@ W.modCF = (function(){
   async function query(){
     if(!st.result) return;
     try{
-      var out = await W.api.post('', '/api/query', {
+      var out = await W.api.queryMain({
         request_id: U.$('rcReq').value, period: st.result.period,
         source_revision: st.result.source_revision, run_id: st.result.run_id
       });
@@ -988,8 +1126,8 @@ W.modRK = (function(){
 
   async function loadMeta(){
     try{
-      st.inds = await W.api.get(W.api.getBase().v8, '/api/v8/industries');
-      st.scns = await W.api.get(W.api.getBase().v8, '/api/v8/scenarios');
+      st.inds = await W.api.industries();
+      st.scns = await W.api.scenarios();
     }catch(e){
       st.inds = SNAPSHOT.industries;
       st.scns = SNAPSHOT.scenarios;
@@ -1020,7 +1158,7 @@ W.modRK = (function(){
     }
     var d;
     try{
-      d = await W.api.get(W.api.getBase().v8, '/api/v8/assess?'+p);
+      d = await W.api.assess(String(p));
     }catch(e){
       // 离线：内置 edge 场景快照。切换场景无效，如实说明。
       d = SNAPSHOT.edge;
@@ -1253,21 +1391,41 @@ W.modRK = (function(){
   async function save(){
     msg('正在保存留痕…');
     try{
-      var r = await W.api.post(W.api.getBase().v8, '/api/v8/save',
+      var r = await W.api.saveV8(
         {industry:U.$('rkInd').value, scenario:U.$('rkScn').value, amount:U.$('rkAmt').value,
          algo:U.$('rkAlgo').value,
          evidence:U.$('rkEvi').value, q_in_fusion:U.$('rkQif').value,
          benford:U.$('rkBen').value, stability:U.$('rkStab').value});
-      msg(r.error ? ('保存失败：'+r.error)
-        : ('已提交留痕，请求编号 '+r.request_id+'，等级 '+r.level));
-      if(!r.error) await showLogs();
-    }catch(e){ msg('保存失败：'+e.message); }
+      // 服务端在数据库不可用时会返回 503，但把 level/Q/D/P 一并带回来：
+      // 留痕失败不等于这次评估作废，结论照样要给用户看。
+      if(r['留痕可用'] === false || r.__degraded){
+        msg('评估已完成（等级 '+(r.level||'—')+'），但留痕未写入：'+
+            (r['原因']||r.error||'数据库不可用'), true);
+      }else if(r.error){
+        msg('保存失败：'+r.error, true);
+      }else{
+        msg('已提交留痕，请求编号 '+r.request_id+'，等级 '+r.level);
+        await showLogs();
+      }
+    }catch(e){
+      // 服务重启会换会话令牌，老页面所有 POST 都会被拒；说清怎么办，别让人猜
+      msg(e.code === 'session_expired'
+          ? (e.message+'（服务重启后令牌会更新，刷新页面即可恢复）')
+          : ('保存失败：'+e.message), true);
+    }
   }
 
   async function showLogs(){
     var rows = U.$('rcLogRows');
     try{
-      var r = await W.api.get(W.api.getBase().v8, '/api/v8/logs');
+      var r = await W.api.logs();
+      // 数据库不可用时服务端返回 503 + {留痕可用:false, 原因}，这属于降级而非报错，
+      // 要把真实原因显示出来，而不是笼统的「后端没连上」。
+      if(r['留痕可用'] === false){
+        rows.innerHTML = '<tr><td colspan="9" class="muted">留痕不可用：'+
+          U.esc(r['原因']||'数据库未连接')+'</td></tr>';
+        return;
+      }
       if(r.error){ rows.innerHTML = '<tr><td colspan="9" class="muted">'+U.esc(r.error)+'</td></tr>'; return; }
       rows.innerHTML = (r.logs||[]).map(function(l){
         return '<tr><td class="mono">'+U.esc(l.request_id)+'</td><td>'+U.esc(l.industry)+
@@ -1322,7 +1480,7 @@ W.modCN = (function(){
   async function load(){
     var d;
     try{
-      d = await W.api.get('', '/api/console');
+      d = await W.api.console();
     }catch(e){
       U.$('cnChecked').textContent = '未连接后端，无法探测。';
       ['cnRuntime','cnDbKv','cnMcpKv','cnNotify'].forEach(function(id){
