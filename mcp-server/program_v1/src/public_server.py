@@ -47,6 +47,27 @@ TOKEN = (os.environ.get("WORKBENCH_TOKEN") or "").strip() or secrets.token_urlsa
 START = time.time()
 
 
+def _csp():
+    """Content-Security-Policy。
+
+    connect-src 默认只放行同源，这是刻意的：页面由本进程下发，所有请求都在
+    本进程内消化（V8 走 /v8/ 反向代理），原本就不需要跨域，放开只会扩大攻击面。
+
+    运维若在页面「连接设置」里把后端指向外部地址（如 http://10.0.0.5:8010），
+    浏览器会被这条策略拦掉，而控制台只报 "blocked by CSP"，看不出是哪条
+    directive 拦的、更看不出要改哪里。需要时通过环境变量显式追加，集中一处：
+
+        WORKBENCH_CONNECT_SRC=http://10.0.0.5:8010,https://wb.example.com
+
+    其余指令保持收紧：frame-ancestors/base-uri 一律禁止。
+    """
+    extra = os.environ.get("WORKBENCH_CONNECT_SRC", "").strip()
+    srcs = ["'self'"] + [s.strip() for s in extra.split(",") if s.strip()]
+    return ("default-src 'self'; script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; connect-src " + " ".join(srcs) + "; "
+            "img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'")
+
+
 def _page(file_path):
     """读取页面并把令牌占位符换成真令牌。
 
@@ -286,9 +307,7 @@ class Handler(BaseHTTPRequestHandler):
             "Content-Length": str(len(raw)),
             "Cache-Control": "no-store",
             "X-Content-Type-Options": "nosniff",
-            "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; "
-            "style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; "
-            "frame-ancestors 'none'; base-uri 'none'",
+            "Content-Security-Policy": _csp(),
         }
         for key, value in headers.items():
             self.send_header(key, value)
