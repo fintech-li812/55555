@@ -1,0 +1,41 @@
+[Unit]
+Description=Cashflow Workbench - 数据库连接就绪检查（开机自动建立/校验连接）
+Documentation=file:///opt/cashflow/DEPLOY.md
+# 排在 MySQL 之后、两个业务服务之前：确保它们起来时库已经可用
+After=mysql.service
+Requires=mysql.service
+Before=cf-v8-web.service cf-workbench.service
+# 属于 [Unit] 段：放在 [Service] 里会被 systemd 判为未知键而忽略
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=cfrun
+Group=cfrun
+WorkingDirectory=/opt/cashflow
+# 凭证由这个文件注入，程序本身不写死口令；systemd 以 root 读取它，
+# 因此即便文件是 0600 属主 cfrun 也能被正确读到。
+EnvironmentFile=/opt/cashflow/deploy/.env
+Environment=PYTHONIOENCODING=utf-8
+ExecStart=/opt/cashflow/venv/bin/python -B -u /opt/cashflow/scripts/db_autoconnect.py --attempts 30 --delay 3 --max-total 150 --expect-tables mfg_v8_risk_log_v1,mfg_cashflow_runs_v1
+Restart=on-failure
+RestartSec=20
+TimeoutStartSec=200
+
+# ---- 目录：交给 systemd 创建/回收，而不是靠安装时手工 mkdir ----
+# /run 是 tmpfs，重启就没了；RuntimeDirectory 每次启动时重建并按需清理。
+# LogsDirectory 同理，且会自动把属主设成本服务的 User/Group。
+RuntimeDirectory=cashflow
+RuntimeDirectoryMode=0755
+LogsDirectory=cashflow
+LogsDirectoryMode=0750
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=true
+ProtectSystem=full
+# ProtectSystem=full 下仍需显式放行日志目录的写入
+ReadWritePaths=/var/log/cashflow
+
+[Install]
+WantedBy=multi-user.target

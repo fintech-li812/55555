@@ -1,0 +1,11 @@
+/var/log/cashflow/*.log {
+    weekly
+    rotate 8
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    su root root
+    create 0640 cfrun cfrun
+}

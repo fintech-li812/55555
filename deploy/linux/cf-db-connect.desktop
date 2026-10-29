@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=CF Database Connect Check
+Comment=校验并就绪数据库连接（幂等，失败重试）
+Exec=/opt/cashflow/venv/bin/python -B /opt/cashflow/scripts/db_autoconnect.py --env-file /opt/cashflow/deploy/.env --once --fresh-secs 300
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Delay=5
+Categories=Utility;

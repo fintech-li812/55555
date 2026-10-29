@@ -23,7 +23,11 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-$Root    = Split-Path -Parent $MyInvocation.MyCommand.Path
+# 脚本本身放在 scripts\ 子目录里，$MyInvocation/$PSScriptRoot 给的是「脚本所在目录」，
+# 项目根还要再往上一层。少这一层时会拼成 scripts\mcp-server\program_v1\src\public_server.py，
+# 于是脚本一启动就 throw「缺少文件」。
+$ScriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+$Root    = Split-Path -Parent $ScriptDir
 $Src     = Join-Path $Root 'mcp-server\program_v1\src'
 $EnvFile = Join-Path $Root 'deploy\.env'
 $LogRoot = Join-Path $Root 'outbox\runtime'
