@@ -338,6 +338,7 @@ details summary{cursor:pointer;font-size:13px;color:var(--blue);padding:6px 0}
         </select></div>
       <div><label for="rkStab">D 稳定性 bootstrap（+1~2 秒）</label>
         <select id="rkStab"><option value="0">关闭（默认）</option><option value="1">开启</option></select></div>
+      <div id="rkSwHint" class="muted" style="grid-column:1/-1;font-size:12px"></div>
       <!-- 生效开关回显：每次评估后由服务端回填，用来确认「我以为的口径」
            与「服务端实际走的口径」一致，避免配置漂移没人发现 -->
       <div id="rkSwitches" class="muted" style="grid-column:1/-1;font-size:12px"></div>
@@ -1275,14 +1276,26 @@ W.modRK = (function(){
     }
   }
 
+  /** 开关只在 v1 下生效：其它两版没有证据层与 Q 退出判别的实现。
+      与其把控件藏起来（用户会奇怪控件去哪了，而且隐藏后一旦忘了同步删除
+      引用，切版本时页面直接报 null.value），不如置灰并说明原因。 */
+  function syncSwitches(){
+    var on = (U.$('rkAlgo').value === 'v1');
+    ['rkEvi', 'rkQif', 'rkBen', 'rkStab'].forEach(function(id){
+      var el = U.$(id);
+      if(!el) return;
+      el.disabled = !on;
+      el.title = on ? '' : '仅 v1 生产版支持；当前算法版本下此开关不生效';
+    });
+    var hint = U.$('rkSwHint');
+    if(hint) hint.textContent = on ? '' : '（以下开关仅对 v1 生产版生效，当前已置灰）';
+  }
+
   function bind(){
     U.$('rkRun').onclick = run;
     U.$('rkSave').onclick = save;
-    // v1 的三态选项只在选中 v1 时出现：这些是业务口径开关，
-    // 不该在别的算法下摆出来让人误以为生效。
-    U.$('rkAlgo').onchange = function(){
-      U.$('v1Opts').style.display = (U.$('rkAlgo').value === 'v1') ? '' : 'none';
-    };
+    U.$('rkAlgo').onchange = syncSwitches;
+    syncSwitches();
     U.$('rkLogs').onclick = showLogs;
     U.$('rcLogs').onclick = showLogs;
   }
