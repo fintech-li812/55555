@@ -35,7 +35,13 @@ def _fingerprint(result):
 
 
 class _EnvGuard:
-    """测试期间临时改环境变量，用完彻底还原（含删除）。"""
+    """测试期间临时改环境变量，用完彻底还原（含删除）。
+
+    进入时把 ``CF_V8_CONFIG`` 指向一个**必定不存在**的路径：
+    仓库里本身带着 ``deploy/algorithm.config.json``，不清掉它的话，
+    「默认取内置默认」这类断言会变成「取决于仓库当前配置成什么」，
+    别人一改配置测试就红，而测试红的原因与被测代码无关。
+    """
 
     KEYS = ("CF_V8_CONFIG", "CF_V8_ALGO", "CF_V8_EVIDENCE", "CF_V8_BENFORD",
             "CF_V8_Q_IN_FUSION", "CF_V8_STABILITY", "CF_V8_CACHE",
@@ -45,6 +51,10 @@ class _EnvGuard:
         self._saved = {k: os.environ.get(k) for k in self.KEYS}
         for k in self.KEYS:
             os.environ.pop(k, None)
+        # 故意指向不存在的路径，让"默认"只可能来自内置默认
+        os.environ["CF_V8_CONFIG"] = os.path.join(
+            tempfile.gettempdir(), "cf_v8_config_absent_for_test.json")
+        config.reload()
         return self
 
     def __exit__(self, *a):
@@ -319,6 +329,56 @@ class TestEngineWiring(unittest.TestCase):
             self.assertEqual(r["第一层"]["适用性声明"], "已声明适用")
             r2 = engine.assess(benford_applicable=None)
             self.assertIn("未声明", r2["第一层"]["适用性声明"])
+
+
+class TestCommittedConfigFile(unittest.TestCase):
+    """随仓库提交的配置文件本身就是一份口径声明，必须与内置默认一致。
+
+    这条测试不隔离 CF_V8_CONFIG，专门读仓库里真实那份
+    ``deploy/algorithm.config.json``：如果有人把它改成"默认走 v1 + 宽松"，
+    那等于悄悄换了全站口径，必须让 CI 挡下来。
+    """
+
+    def _repo_config(self):
+        # config.py 里 _ROOT 是「含 deploy 与 web 两个目录」的仓库根
+        path = os.path.join(config._ROOT, "deploy", "algorithm.config.json")
+        if not os.path.exists(path):
+            self.skipTest("仓库未携带 deploy/algorithm.config.json")
+        return path
+
+    def test_committed_file_matches_builtin_defaults(self):
+        path = self._repo_config()
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        for section, values in config.DEFAULTS.items():
+            if section == "algorithm":
+                continue            # allowed 列表不要求出现在文件里
+            self.assertIn(section, data, "配置文件缺少段 %s" % section)
+            for key, default in values.items():
+                self.assertIn(key, data[section], "配置文件缺少 %s.%s" % (section, key))
+                self.assertEqual(data[section][key], default,
+                                 "配置文件 %s.%s=%r 与内置默认 %r 不一致"
+                                 % (section, key, data[section][key], default))
+        self.assertEqual(data.get("algorithm", {}).get("default"),
+                         config.DEFAULTS["algorithm"]["default"])
+
+    def test_repo_default_behaviour_is_legacy(self):
+        """用仓库真实配置文件解析出来的口径，必须等于改造前行为。"""
+        path = self._repo_config()
+        saved = os.environ.get("CF_V8_CONFIG")
+        os.environ["CF_V8_CONFIG"] = path
+        try:
+            config.reload()
+            s = config.resolve()
+            self.assertEqual(s.algo, "v8")
+            self.assertTrue(s.require_full_evidence_for_green)
+            self.assertTrue(s.q_in_fusion)
+        finally:
+            if saved is None:
+                os.environ.pop("CF_V8_CONFIG", None)
+            else:
+                os.environ["CF_V8_CONFIG"] = saved
+            config.reload()
 
 
 class TestSnapshot(unittest.TestCase):
