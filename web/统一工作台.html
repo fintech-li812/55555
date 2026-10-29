@@ -322,12 +322,14 @@ details summary{cursor:pointer;font-size:13px;color:var(--blue);padding:6px 0}
         </select></div>
       <div><label for="rkEvi">证据模式（绿灯放行门槛）</label>
         <select id="rkEvi">
-          <option value="strict">严格（默认）：证据不足不放行绿灯</option>
+          <option value="">跟随配置（默认）</option>
+          <option value="strict">严格：证据不足不放行绿灯</option>
           <option value="loose">宽松：恢复三档判别，复核标记仍在</option>
         </select></div>
       <div><label for="rkQif">Q 参与融合判别</label>
         <select id="rkQif">
-          <option value="1">是（默认，原有逻辑）</option>
+          <option value="">跟随配置（默认）</option>
+          <option value="1">是：参与判别（原有逻辑）</option>
           <option value="0">否：Q 仅作数据质量报告</option>
         </select></div>
       <div><label for="rkBen">Benford 适用性声明</label>
@@ -1005,11 +1007,14 @@ W.modRK = (function(){
     msg('正在运行三层模型与压力测试…');
     var p = new URLSearchParams({industry:U.$('rkInd').value, scenario:U.$('rkScn').value,
       amount:U.$('rkAmt').value, n:U.$('rkNpg').value, algo:U.$('rkAlgo').value});
-    // 开关只对 v1 有意义：其它两版没有证据层与 Q 退出判别的实现。
-    // 但 URL 里带上也不影响——服务端对 v8 会直接忽略这些键。
+    // Q 参与融合判别三种算法都支持——三者共用同一张 48 格融合表，
+    // 把 Q 钉成 Q_OK 只是取该表在 Q=Q_OK 上的子表，与算法版本无关。
+    // 其余开关依赖 v1 的证据层 / Benford 声明 / 稳定性实现，非 v1 时不发送。
+    // 空值代表「跟随配置」：不传才让服务端的四级覆盖真正说话，
+    // 否则前端的默认值会把 deploy/algorithm.config.json 里的配置焊死。
+    if(U.$('rkQif').value !== '') p.set('q_in_fusion', U.$('rkQif').value);
     if(U.$('rkAlgo').value === 'v1'){
-      p.set('evidence', U.$('rkEvi').value);
-      p.set('q_in_fusion', U.$('rkQif').value);
+      if(U.$('rkEvi').value !== '') p.set('evidence', U.$('rkEvi').value);
       if(U.$('rkBen').value !== '') p.set('benford', U.$('rkBen').value);
       if(U.$('rkStab').value === '1') p.set('stability', '1');
     }
@@ -1281,14 +1286,18 @@ W.modRK = (function(){
       引用，切版本时页面直接报 null.value），不如置灰并说明原因。 */
   function syncSwitches(){
     var on = (U.$('rkAlgo').value === 'v1');
-    ['rkEvi', 'rkQif', 'rkBen', 'rkStab'].forEach(function(id){
+    // Q 开关对三种算法都生效，不能跟着 v1 一起置灰——否则默认算法 v8 下
+    // 它在界面上完全不可达，尽管服务端早已支持。
+    ['rkEvi', 'rkBen', 'rkStab'].forEach(function(id){
       var el = U.$(id);
       if(!el) return;
       el.disabled = !on;
       el.title = on ? '' : '仅 v1 生产版支持；当前算法版本下此开关不生效';
     });
     var hint = U.$('rkSwHint');
-    if(hint) hint.textContent = on ? '' : '（以下开关仅对 v1 生产版生效，当前已置灰）';
+    if(hint) hint.textContent = on
+      ? '（留空＝跟随服务端配置，不在此处焊死默认值）'
+      : '（除「Q 参与融合判别」外，其余开关仅对 v1 生产版生效，已置灰）';
   }
 
   function bind(){
