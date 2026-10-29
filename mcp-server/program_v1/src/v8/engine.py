@@ -8,6 +8,7 @@
 """
 from __future__ import annotations
 
+import math
 import sys, os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -20,6 +21,7 @@ from . import ra_next
 from . import algorithm as algs
 from . import config
 from .algorithm import policy
+from .algorithm.validation import ValidationError, int_param
 
 # 可切换的算法版本。默认保持基线，切换必须是显式参数，
 # 不做「静默升级」——Q 的尺度在新版里变了，融合阈值尚未重新标定。
@@ -41,6 +43,12 @@ STRESS_INPUTS = {
     "月度主要成本": {"value": 70000.0,
                 "from": "现金流水表 2026-08：经营性流出 7 万/月"},
 }
+
+# 每组样本量的允许区间。上界不是随手定的：池级模型的构建随规模三次增长
+# （实测 n=20 需 0.30s、n=60 需 6.9s、n=100 需 40s，瓶颈是 DA 的 LP），
+# 放开到 200 就是 5 分钟级别，等于把接口变成一个 DoS 入口。
+# 60 是「P 层证据充分」所需的最小规模，再大收益有限而代价陡增。
+POOL_RANGE = (2, 60)
 
 # 「未指定」哨兵：不能用 None，因为 None 本身是 benford_applicable 的合法取值
 # （三态里的「未声明」）。用独立哨兵才能区分「没传」与「传了未声明」。
@@ -213,6 +221,20 @@ def assess(industry: str = "制造业", scenario: str = "edge",
     if algo not in ALGOS:
         raise ValueError("未知算法版本 %r，可选：%s" % (algo, "、".join(ALGOS)))
     algo_version = ALGOS[algo]
+
+    # 显式传入的值也必须过取值范围，不能只靠 config 的回落。
+    # config 在取值超范围时确实会回落，但它管不到调用方直接塞进来的值——
+    # 那样 n=999999 会去建 400 万条样本（实测 n=200 就要 5 分钟以上），
+    # n=0 会在 z-score 里直接除零。参数错误必须是 400，不是 500 也不是挂起。
+    n_per_group = int_param(n_per_group, "n_per_group", *POOL_RANGE)
+    n_trees = int_param(n_trees, "n_trees", *algs.validation.N_TREES_RANGE)
+    # 金额必须有限：1e309 会被 float() 悄悄变成 inf，一路流到审批路由与
+    # 数据库的 DECIMAL 字段，最后要么算出莫名其妙的结论要么写入失败。
+    # NaN 同理——它跟任何值比较都是 False，会让"取较严者"这类比较静默失效。
+    amount = float(amount)
+    if not math.isfinite(amount):
+        raise ValidationError("金额必须是有限数，收到 %r" % (amount,),
+                              field="amount")
 
     facts = cashflow_facts()
     prof = ins.get(industry)

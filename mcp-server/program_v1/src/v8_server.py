@@ -30,6 +30,9 @@ from v8 import engine, industry as ins, indicators as ind  # noqa: E402
 from v8 import algorithm as v8algo  # noqa: E402
 from v8 import config as v8cfg  # noqa: E402
 
+# POST 请求体上限：留痕请求只有几个字段，1 MB 已是极大余量
+MAX_BODY = 1 * 1024 * 1024
+
 LOGGER = logging.getLogger("v8.server")
 logging.basicConfig(level=os.environ.get("CF_LOG_LEVEL", "INFO"),
                     format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -74,9 +77,18 @@ def _load_env():
 ENV = _load_env()
 
 
+class DbUnavailable(RuntimeError):
+    """数据库不可用。这是**可预期的降级**，不是服务故障。"""
+
+
 def _db():
     try:
         import pymysql
+    except ImportError as e:
+        # 缺依赖与连不上是两回事：前者是部署不全，后者是数据库可能没起。
+        # 混成一条 "数据库连接失败" 会让运维去查数据库，白折腾一轮。
+        raise DbUnavailable("未安装数据库驱动 pymysql（留痕功能不可用，评估不受影响）")
+    try:
         return pymysql.connect(
             host=ENV.get("CF_DB_HOST", "127.0.0.1"),
             port=int(ENV.get("CF_DB_PORT", "3307")),
@@ -85,7 +97,7 @@ def _db():
             database=ENV.get("CF_DB_NAME", ""),
             charset="utf8mb4", connect_timeout=8)
     except Exception as e:
-        raise RuntimeError("数据库连接失败：%s" % e)
+        raise DbUnavailable("数据库连接失败：%s" % e)
 
 
 def _ensure(cur):
@@ -166,6 +178,12 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/v8/logs":
             try:
                 c = _db()
+            except DbUnavailable as e:
+                # 留痕读不到是配置/环境问题，不是 5xx 服务故障。
+                # 返回 503 并说清原因，前端才能显示「留痕不可用」而不是「服务器错误」。
+                self._json({"logs": [], "留痕可用": False, "原因": str(e)}, 503)
+                return
+            try:
                 with c.cursor() as cur:
                     _ensure(cur)
                     cur.execute("SELECT request_id, industry, scenario, q_score, d_score, "
@@ -179,26 +197,86 @@ class Handler(BaseHTTPRequestHandler):
                     "D": float(r[4]) if r[4] is not None else None,
                     "P": float(r[5]) if r[5] is not None else None,
                     "等级": r[6], "缓冲倍数": float(r[7]) if r[7] is not None else None,
-                    "最坏场景": r[8], "时间": str(r[9])} for r in rows]})
+                    "最坏场景": r[8], "时间": str(r[9])} for r in rows],
+                    "留痕可用": True})
+            except DbUnavailable as e:
+                self._json({"logs": [], "留痕可用": False, "原因": str(e)}, 503)
             except Exception as e:
                 self._json({"error": str(e)}, 500)
             return
         self._json({"error": "not found"}, 404)
+
+    def _drain(self, size: int, chunk: int = 65536):
+        """丢弃请求体剩余字节，避免提前响应导致客户端连接被重置。"""
+        left = size
+        while left > 0:
+            try:
+                got = len(self.rfile.read(min(chunk, left)))
+            except (OSError, ValueError):
+                break
+            if not got:
+                break
+            left -= got
 
     def do_POST(self):
         u = urlparse(self.path)
         if u.path != "/api/v8/save":
             self._json({"error": "not found"}, 404)
             return
+
+        # ---- 1. 读请求体：先限长再读 ----
+        # 不留这一步，一句 Content-Length: 99999999999 就能让服务端去分配
+        # 几十 GB 内存。留痕请求体本就只有几个字段，1 MB 已是极大余量。
+        n = int(self.headers.get("Content-Length") or 0)
+        if n > MAX_BODY:
+            # 拒绝前必须先把请求体读掉（或至少丢弃到上限的两倍）。
+            # 否则客户端还在往里写 2MB，服务端已经回 413 并关连接，
+            # 客户端收到的是 ConnectionReset 而不是那句 413，
+            # 看上去像"服务挂了"，实际是拒绝生效了但没说清楚。
+            self._drain(min(n, MAX_BODY * 2))
+            self._json({"error": "请求体过大（上限 %d 字节）" % MAX_BODY,
+                        "code": "payload_too_large"}, 413)
+            return
         try:
-            n = int(self.headers.get("Content-Length") or 0)
             body = json.loads(self.rfile.read(n).decode("utf-8"))
+        except (ValueError, UnicodeDecodeError) as e:
+            self._json({"error": "请求体不是合法 JSON：%s" % e,
+                        "code": "bad_json"}, 400)
+            return
+
+        # ---- 2. 评估（与留痕解耦：库挂了也要把结果算出来）----
+        try:
             r = engine.assess(**_overrides(
                 body, industry=body.get("industry", "制造业"),
                 scenario=body.get("scenario", "edge"),
                 amount=float(body.get("amount", 120000) or 120000)))
-            rid = body.get("request_id") or ("v8-" + uuid.uuid4().hex[:12])
+        except v8algo.validation.ValidationError as e:
+            self._json({"error": str(e), "code": e.code, "field": e.field}, 400)
+            return
+        except ValueError as e:
+            self._json({"error": str(e), "code": "invalid_argument"}, 400)
+            return
+        except Exception as e:
+            LOGGER.exception("assess 失败")
+            self._json({"error": "%s: %s" % (type(e).__name__, e)}, 500)
+            return
+
+        summary = {"level": r["最终等级"]["等级"], "Q": r["第一层"]["Q"],
+                   "D": r["第二层"]["D"], "P": r["第三层"]["P"],
+                   "证据": r["最终等级"].get("证据")}
+
+        # ---- 3. 留痕 ----
+        rid = body.get("request_id") or ("v8-" + uuid.uuid4().hex[:12])
+        try:
             c = _db()
+        except DbUnavailable as e:
+            # 留痕失败不等于这次评估作废。把结果一并带回去，
+            # 否则用户看到 503 会以为整次评估都失败了，白白浪费一次计算。
+            out = {"status": "not_stored", "留痕可用": False, "原因": str(e)}
+            out.update(summary)
+            self._json(out, 503)
+            return
+        try:
             with c.cursor() as cur:
                 _ensure(cur)
                 cur.execute(
@@ -212,17 +290,16 @@ class Handler(BaseHTTPRequestHandler):
                      json.dumps(r, ensure_ascii=False)))
             c.commit()
             c.close()
-            self._json({"status": "committed", "request_id": rid,
-                        "level": r["最终等级"]["等级"], "Q": r["第一层"]["Q"],
-                        "D": r["第二层"]["D"], "P": r["第三层"]["P"],
-                        "证据": r["最终等级"].get("证据")})
-        except v8algo.validation.ValidationError as e:
-            self._json({"error": str(e), "code": e.code, "field": e.field}, 400)
-        except ValueError as e:
-            self._json({"error": str(e), "code": "invalid_argument"}, 400)
         except Exception as e:
-            LOGGER.exception("save 失败")
-            self._json({"error": "%s: %s" % (type(e).__name__, e)}, 500)
+            LOGGER.exception("留痕写入失败")
+            out = {"status": "not_stored", "留痕可用": False,
+                   "原因": str(e)}
+            out.update(summary)
+            self._json(out, 503)
+            return
+        out = {"status": "committed", "request_id": rid, "留痕可用": True}
+        out.update(summary)
+        self._json(out)
 
 
 def _flag(value) -> bool:

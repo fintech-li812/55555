@@ -45,6 +45,8 @@ import logging
 import os
 import threading
 
+from .algorithm.validation import ValidationError
+
 LOGGER = logging.getLogger("v8.config")
 
 _SRC = os.path.dirname(os.path.abspath(__file__))
@@ -88,6 +90,8 @@ DEFAULTS = {
     "stability": {"enabled": False},
     # 池级模型缓存是性能优化主体，默认开启；关掉即回到每请求全量重算。
     "cache": {"enabled": True, "max": 64},
+    # 上界 60 是硬约束：池级模型构建随规模三次增长（n=100 实测 40 秒），
+    # 再高就是 DoS 入口。60 刚好满足「P 层证据充分」所需规模，超出不划算。
     "pool": {"size_per_group": 20},
     "forest": {"trees": 60},
 }
@@ -308,12 +312,28 @@ def _raw(section, key):
 def _pick(override, section, key, caster):
     """四级取值：请求参数 > 环境变量 > 配置文件 > 内置默认。"""
     if override is not None:
+        if caster is int:
+            # 请求参数类型不对是调用方缺陷：静默回落会让调用方以为
+            # 自己在评 20 条样本，实际传的是 "abc"。必须 400。
+            try:
+                return int(override), "请求参数"
+            except (TypeError, ValueError):
+                raise ValidationError("%s 必须是整数，收到 %r" % (key, override),
+                                      field=key)
         return caster(override), "请求参数"
     raw, src = _raw(section, key)
     if caster is int:
+        # 来源不同，处理不同：
+        #   - 环境变量 / 配置文件配错 → 告警后回落默认（运维输入，退化即可）；
+        #   - 请求参数类型不对 → 抛 ValidationError，让上层返回 400。
+        #     调用方把 "abc" 传进来是调用方的缺陷，静默回落成 20 会让它
+        #     以为自己真的在评 20 条样本。
         try:
             return int(raw), src
         except (TypeError, ValueError):
+            if src == "请求参数":
+                raise ValidationError("%s 必须是整数，收到 %r"
+                                      % (key, raw), field=key)
             LOGGER.warning("%s=%r 不是整数，回落内置默认 %s",
                            section + "." + key, raw, DEFAULTS[section][key])
             return DEFAULTS[section][key], "内置默认（取值非法）"
@@ -396,7 +416,7 @@ def resolve(**overrides):
     trees, _ = _pick(overrides.get("trees"), "forest", "trees", int)
 
     # 数值型开关还要过取值范围，超范围回落默认并告警
-    bounds = {"每组样本量": (pool_n, 2, 200, "pool.size_per_group"),
+    bounds = {"每组样本量": (pool_n, 2, 60, "pool.size_per_group"),
               "森林树数": (trees, 1, 500, "forest.trees"),
               "缓存上限": (cache_max, 1, 512, "cache.max")}
     fixed = {}
