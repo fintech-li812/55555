@@ -258,7 +258,8 @@ def assess(industry: str = "制造业", scenario: str = "edge",
         # 随机森林未训练出任何树时 P 无意义。不传就等同于默认「可信」，
         # 会把「无法判断」静默当成「无风险」（详见 fusion.py 模块说明）。
         fused = fusion.fuse(gate["Q"], da.get("D"), rf.get("P"),
-                            d_reliable=d_reliable, p_reliable=p_reliable)
+                            d_reliable=d_reliable, p_reliable=p_reliable,
+                            q_in_fusion=q_in_fusion)
         fused_level = fused["等级"]
     elif algo == "v1":
         result = algs.assess(pool, target["values"], with_stability=with_stability,
@@ -281,7 +282,8 @@ def assess(industry: str = "制造业", scenario: str = "edge",
         d_reliable = da.get("D") is not None
         p_reliable = rf.get("P") is not None and rf.get("树数", 0) > 0
         fused = fusion.fuse(gate["Q"], da.get("D"), rf.get("P"),
-                            d_reliable=d_reliable, p_reliable=p_reliable)
+                            d_reliable=d_reliable, p_reliable=p_reliable,
+                            q_in_fusion=q_in_fusion)
         fused_level = fused["等级"]
 
     buffer_judge = ins.judge_by_buffer(industry, M, buffer) if M else None
