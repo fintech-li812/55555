@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
 import uuid
@@ -26,6 +27,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(SRC)))  # CashflowRiskWor
 sys.path.insert(0, SRC)
 
 from v8 import engine, industry as ins, indicators as ind  # noqa: E402
+from v8 import algorithm as v8algo  # noqa: E402
+from v8 import config as v8cfg  # noqa: E402
+
+LOGGER = logging.getLogger("v8.server")
+logging.basicConfig(level=os.environ.get("CF_LOG_LEVEL", "INFO"),
+                    format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
 PORT = int(os.environ.get("CF_V8_PORT", "8010"))
 HTML_PATH = os.path.join(ROOT, "web", "v8_工作台.html")
@@ -121,14 +128,31 @@ class Handler(BaseHTTPRequestHandler):
             return
         if u.path == "/api/v8/assess":
             try:
-                r = engine.assess(
-                    industry=q.get("industry", "制造业"),
-                    scenario=q.get("scenario", "edge"),
-                    amount=float(q.get("amount", 120000) or 120000),
-                    n_per_group=int(q.get("n", 20) or 20))
+                r = engine.assess(**_overrides(q, industry=q.get("industry", "制造业"),
+                                               scenario=q.get("scenario", "edge"),
+                                               amount=float(q.get("amount", 120000) or 120000)))
                 self._json(r)
+            except v8algo.validation.ValidationError as e:
+                # 参数错误是客户端问题，返回 400，不要记成服务端故障
+                self._json({"error": str(e), "code": e.code, "field": e.field}, 400)
+            except ValueError as e:
+                self._json({"error": str(e), "code": "invalid_argument"}, 400)
             except Exception as e:
+                LOGGER.exception("assess 失败")
                 self._json({"error": "%s: %s" % (type(e).__name__, e)}, 500)
+            return
+        if u.path == "/api/v8/config":
+            # 上线核验用：一眼看清当前生效口径与每一项的取值来源
+            self._json(v8cfg.snapshot())
+            return
+        if u.path == "/api/v8/algorithms":
+            self._json({"algorithms": sorted(engine.ALGOS.keys()),
+                        "default": v8cfg.resolve().algo,
+                        "cache": v8algo.cache_stats()})
+            return
+        if u.path == "/api/v8/health":
+            self._json({"ok": True, "algorithms": sorted(engine.ALGOS.keys()),
+                        "cache": v8algo.cache_stats()})
             return
         if u.path == "/api/v8/industries":
             self._json({"source": ins.THRESHOLD_SOURCE,
@@ -169,9 +193,10 @@ class Handler(BaseHTTPRequestHandler):
         try:
             n = int(self.headers.get("Content-Length") or 0)
             body = json.loads(self.rfile.read(n).decode("utf-8"))
-            r = engine.assess(industry=body.get("industry", "制造业"),
-                              scenario=body.get("scenario", "edge"),
-                              amount=float(body.get("amount", 120000) or 120000))
+            r = engine.assess(**_overrides(
+                body, industry=body.get("industry", "制造业"),
+                scenario=body.get("scenario", "edge"),
+                amount=float(body.get("amount", 120000) or 120000)))
             rid = body.get("request_id") or ("v8-" + uuid.uuid4().hex[:12])
             c = _db()
             with c.cursor() as cur:
@@ -188,13 +213,71 @@ class Handler(BaseHTTPRequestHandler):
             c.commit()
             c.close()
             self._json({"status": "committed", "request_id": rid,
-                        "level": r["融合判定"]["等级"], "Q": r["第一层"]["Q"],
-                        "D": r["第二层"]["D"], "P": r["第三层"]["P"]})
+                        "level": r["最终等级"]["等级"], "Q": r["第一层"]["Q"],
+                        "D": r["第二层"]["D"], "P": r["第三层"]["P"],
+                        "证据": r["最终等级"].get("证据")})
+        except v8algo.validation.ValidationError as e:
+            self._json({"error": str(e), "code": e.code, "field": e.field}, 400)
+        except ValueError as e:
+            self._json({"error": str(e), "code": "invalid_argument"}, 400)
         except Exception as e:
+            LOGGER.exception("save 失败")
             self._json({"error": "%s: %s" % (type(e).__name__, e)}, 500)
 
 
+def _flag(value) -> bool:
+    """'1'/'true'/'yes' → True，其余（含缺失）→ False。"""
+    return str(value or "").lower() in ("1", "true", "yes", "on")
+
+
+def _tri(value):
+    """三态解析：缺失 → None；'1'/'true' → True；'0'/'false' → False。
+
+    Benford 适用性是三态语义，缺失不等于「不适用」——缺失只表示未声明。
+    """
+    if value is None or value == "":
+        return None
+    s = str(value).lower()
+    if s in ("1", "true", "yes", "on"):
+        return True
+    if s in ("0", "false", "no", "off"):
+        return False
+    return None
+
+
+def _overrides(params, **base):
+    """把 HTTP 参数翻译成 engine.assess 的关键字参数。
+
+    **只放进请求里真的出现了的参数**，其余一律不出现——
+    这样没传的项会落到 config 的四级取值上（环境变量 > 配置文件 > 内置默认），
+    而不是被 HTTP 层的硬编码默认值盖掉。
+    这是开关能生效的关键：以前 `algo=q.get("algo","v8")` 会把默认值
+    焊死在 URL 层，配置里改成 v1 也永远读不到。
+    """
+    kw = dict(base)
+    if params.get("n") not in (None, ""):
+        kw["n_per_group"] = int(params["n"])
+    if params.get("algo") not in (None, ""):
+        kw["algo"] = params["algo"]
+    if params.get("trees") not in (None, ""):
+        kw["n_trees"] = int(params["trees"])
+    if params.get("stability") not in (None, ""):
+        kw["with_stability"] = _flag(params["stability"])
+    if params.get("benford") not in (None, ""):
+        kw["benford_applicable"] = _tri(params["benford"])
+    if params.get("q_in_fusion") not in (None, ""):
+        kw["q_in_fusion"] = _flag(params["q_in_fusion"])
+    if params.get("evidence") not in (None, ""):
+        kw["require_full_evidence_for_green"] = (
+            str(params["evidence"]).lower() != "loose")
+    return kw
+
+
 def main():
+    # 启动时把进程级开关（缓存）落到算法包上，并打印生效口径。
+    # 上线核验时不用去猜：日志第一行就是当前走的是哪套口径。
+    s = v8cfg.apply_runtime(v8cfg.resolve())
+    LOGGER.info("生效开关：%s（来源 %s）", s.to_dict(), s.sources)
     srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     print("v8 工作台已启动：http://127.0.0.1:%d/" % PORT)
     print("页面：%s" % HTML_PATH)

@@ -1,0 +1,29 @@
+{
+  "_说明": "v8 风控算法开关基线。随代码进仓库，是版本化的默认口径；临时覆盖请用环境变量 CF_V8_*（优先级更高），请求级覆盖用 URL/POST 参数（优先级最高）。所有默认值都等于加入开关之前的原有行为，因此删除本文件也不会改变系统表现。",
+  "_取值顺序": "请求参数 > 环境变量 > 本文件 > 内置默认",
+
+  "algorithm": {
+    "default": "v8",
+    "allowed": ["v8", "ra-next-0.1", "v1"]
+  },
+  "evidence": {
+    "mode": "strict"
+  },
+  "quality": {
+    "benford_applicable": null,
+    "gate_in_fusion": true
+  },
+  "stability": {
+    "enabled": false
+  },
+  "cache": {
+    "enabled": true,
+    "max": 64
+  },
+  "pool": {
+    "size_per_group": 20
+  },
+  "forest": {
+    "trees": 60
+  }
+}

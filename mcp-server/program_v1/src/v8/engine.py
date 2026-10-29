@@ -16,6 +16,21 @@ from . import indicators as ind
 from . import industry as ins
 from . import layers
 from . import fusion
+from . import ra_next
+from . import algorithm as algs
+from . import config
+from .algorithm import policy
+
+# 可切换的算法版本。默认保持基线，切换必须是显式参数，
+# 不做「静默升级」——Q 的尺度在新版里变了，融合阈值尚未重新标定。
+ALGOS = {
+    "v8": "v8-baseline",
+    ra_next.VERSION: ra_next.VERSION,
+    # 生产版：训练/打分分离 + 对偶证书 + 证据只升不降 + 池级缓存。
+    # 默认仍是 v8——切到 v1 会让 Q 尺度变化并在默认配置下取消绿灯，
+    # 属于业务口径变更，须显式指定且由业务确认。
+    "v1": algs.VERSION,
+}
 
 # 压力测试输入：来自合成八表登记值（注明出处，非凭空假设）
 STRESS_INPUTS = {
@@ -26,6 +41,11 @@ STRESS_INPUTS = {
     "月度主要成本": {"value": 70000.0,
                 "from": "现金流水表 2026-08：经营性流出 7 万/月"},
 }
+
+# 「未指定」哨兵：不能用 None，因为 None 本身是 benford_applicable 的合法取值
+# （三态里的「未声明」）。用独立哨兵才能区分「没传」与「传了未声明」。
+_UNSET = object()
+
 
 DECLARATION = {
     "现金流来源": "v1.2 计算内核 program_workbench.calculate('synthetic_eight_sheet_v1')，真实计算",
@@ -128,8 +148,72 @@ def exception_review():
 
 
 def assess(industry: str = "制造业", scenario: str = "edge",
-           amount: float = 120000.0, n_per_group: int = 20):
-    """一次完整 v8 评估。"""
+           amount: float = 120000.0, n_per_group=_UNSET, algo=_UNSET,
+           with_stability=_UNSET, n_trees=_UNSET, benford_applicable=_UNSET,
+           require_full_evidence_for_green=_UNSET, q_in_fusion=_UNSET,
+           settings=None):
+    """一次完整 v8 评估。
+
+    凡是传 ``None`` 的参数，都会落到 ``config.resolve()`` 四级覆盖的结果上
+    （请求参数 > 环境变量 > ``deploy/algorithm.config.json`` > 内置默认），
+    内置默认全部等于「加入开关之前的原有行为」。
+    想绕过配置直接用固定口径，就显式传值；传 ``settings=`` 可整体注入。
+
+    algo:
+        ``"v8"``（默认）——基线三层模型（χ² 临界值 + 池风险数字 + 全特征森林）。
+        ``"ra-next-0.1"``——RA_NEXT 候选（MC 精确检验 + Holm / 固定数字自信息 /
+        随机子空间 + 独立校准）。
+        ``"v1"``——生产版：与 0.1 同口径，另加对偶最优性证书、
+        证据等级（只升不降）、池级模型缓存。
+        三者共用同一张融合决策表（fuse-v2.0，48 格未改）。
+
+    benford_applicable（仅 v1）:
+        None（默认）→ Q 数值进融合表，证据记为「不足」；
+        True → 证据「充分」；False → Q 不进融合表（后果是红灯）。
+
+    q_in_fusion（仅 v1，默认 True）:
+        False → Q 只作数据质量报告，不参与融合判别也不参与证据短板。
+        用于业务裁定「第一层不担决策责任」的场合。**默认 True = 原有逻辑**。
+
+    require_full_evidence_for_green（仅 v1）:
+        默认 True——证据不足时不得放行绿灯，绿灯升为黄灯并标记需人工复核。
+        关掉（loose）可恢复三档判别，但复核标记仍在。
+
+    with_stability:
+        仅对 ``ra-next-0.1`` / ``v1`` 生效，额外跑 30 次分层 bootstrap 看 D 稳不稳
+        （默认关闭以免拖慢接口；v1 的结果带缓存）。
+    """
+    if settings is None:
+        settings = config.resolve(
+            algo=None if algo is _UNSET else algo,
+            evidence=("strict" if require_full_evidence_for_green else "loose")
+            if require_full_evidence_for_green is not _UNSET else None,
+            benford=None if benford_applicable is _UNSET else benford_applicable,
+            q_in_fusion=None if q_in_fusion is _UNSET else q_in_fusion,
+            stability=None if with_stability is _UNSET else with_stability,
+            pool_n=None if n_per_group is _UNSET else n_per_group,
+            trees=None if n_trees is _UNSET else n_trees)
+        config.apply_runtime(settings)
+    # 显式传值优先于配置（谁更具体谁说话）
+    if algo is _UNSET:
+        algo = settings.algo
+    if with_stability is _UNSET:
+        with_stability = settings.stability
+    if n_trees is _UNSET:
+        n_trees = settings.trees
+    if n_per_group is _UNSET:
+        n_per_group = settings.pool_n
+    if benford_applicable is _UNSET:
+        benford_applicable = settings.benford_applicable
+    if require_full_evidence_for_green is _UNSET:
+        require_full_evidence_for_green = settings.require_full_evidence_for_green
+    if q_in_fusion is _UNSET:
+        q_in_fusion = settings.q_in_fusion
+
+    if algo not in ALGOS:
+        raise ValueError("未知算法版本 %r，可选：%s" % (algo, "、".join(ALGOS)))
+    algo_version = ALGOS[algo]
+
     facts = cashflow_facts()
     prof = ins.get(industry)
     if not facts.get("ok"):
@@ -141,15 +225,42 @@ def assess(industry: str = "制造业", scenario: str = "edge",
     pool = ind.build_sample_pool(n_per_group)
     target = ind.TARGET_SCENARIOS.get(scenario) or ind.TARGET_SCENARIOS["edge"]
 
-    gate = layers.quality_gate(pool)
-    da = layers.deada(pool, target["values"])
-    rf = layers.benford_rf(pool, target["values"], gate)
-    # 上游可用性必须显式传入：DEA-DA 求解降级时 D 不可信，
-    # 随机森林未训练出任何树时 P 无意义。不传就等同于默认「可信」，
-    # 会把「无法判断」静默当成「无风险」（详见 fusion.py 模块说明）。
-    fused = fusion.fuse(gate["Q"], da["D"], rf["P"],
-                        d_reliable=not da.get("降级", False),
-                        p_reliable=rf.get("树数", 0) > 0)
+    evidence = None
+    if algo == "v8":
+        gate = layers.quality_gate(pool)
+        da = layers.deada(pool, target["values"])
+        rf = layers.benford_rf(pool, target["values"], gate)
+        d_reliable = not da.get("降级", False)
+        p_reliable = rf.get("树数", 0) > 0
+        # 上游可用性必须显式传入：DEA-DA 求解降级时 D 不可信，
+        # 随机森林未训练出任何树时 P 无意义。不传就等同于默认「可信」，
+        # 会把「无法判断」静默当成「无风险」（详见 fusion.py 模块说明）。
+        fused = fusion.fuse(gate["Q"], da.get("D"), rf.get("P"),
+                            d_reliable=d_reliable, p_reliable=p_reliable)
+        fused_level = fused["等级"]
+    elif algo == "v1":
+        result = algs.assess(pool, target["values"], with_stability=with_stability,
+                             n_trees=n_trees, benford_applicable=benford_applicable,
+                             require_full_evidence_for_green=require_full_evidence_for_green,
+                             q_in_fusion=q_in_fusion)
+        gate, da, rf = result["第一层"], result["第二层"], result["第三层"]
+        fused = result["融合判定"]
+        evidence = result["证据"]
+        # 融合等级取**未经证据调整**的原值：证据调整要在与缓冲维度取严之后
+        # 再统一做一次，否则缓冲取严会把证据不足的绿灯又拉回绿灯。
+        fused_level = fused["等级"]
+        stability = result.get("稳定性")
+    else:
+        gate = ra_next.quality_gate(pool)
+        da = ra_next.deada(pool, target["values"])
+        rf = ra_next.benford_rf(pool, target["values"], gate)
+        # RA_NEXT 把不可用统一表达为 None：None 即「无法判断」，
+        # 不能落到 P=0.0 被读成「排除粉饰」。
+        d_reliable = da.get("D") is not None
+        p_reliable = rf.get("P") is not None and rf.get("树数", 0) > 0
+        fused = fusion.fuse(gate["Q"], da.get("D"), rf.get("P"),
+                            d_reliable=d_reliable, p_reliable=p_reliable)
+        fused_level = fused["等级"]
 
     buffer_judge = ins.judge_by_buffer(industry, M, buffer) if M else None
     thr = ins.warning_lines(industry, M) if M else None
@@ -166,7 +277,6 @@ def assess(industry: str = "制造业", scenario: str = "edge",
     #   2. 口径文案必须按实际参与比较的维度生成——缓冲维度缺失时
     #      仍宣称「两层并行取严」会让人误以为最终等级含缓冲因素。
     rank = {"绿灯": 0, "黄灯": 1, "红灯": 2}
-    fused_level = fused["等级"]
     buffer_level = buffer_judge["等级"] if buffer_judge else None
 
     final_level = fused_level
@@ -174,6 +284,15 @@ def assess(industry: str = "制造业", scenario: str = "edge",
     if buffer_level in rank and rank[buffer_level] > rank.get(fused_level, 0):
         final_level = buffer_level
         stricter = "现金流缓冲判定（相对阈值 M×K）更严格"
+
+    # v1：与缓冲维度取严之后，统一按证据等级再调一次。
+    # 顺序很重要——先取严、再上档，否则缓冲维度会把证据不足的绿灯留成绿灯。
+    evidence_note = ""
+    if evidence is not None:
+        final_level, review, evidence_note = policy.apply_evidence(
+            final_level, evidence["各层"],
+            require_full_evidence_for_green=require_full_evidence_for_green)
+        evidence = dict(evidence, 复核必需=review, 说明=evidence_note)
 
     sources = ["三层融合判定 FUSE(Q,D,P)"]
     if buffer_level in rank:
@@ -191,14 +310,36 @@ def assess(industry: str = "制造业", scenario: str = "edge",
         "缓冲维度参与比较": buffer_level in rank,
     }
 
+    if algo == "v1":
+        pass                       # v1 的稳定性随算法结果一起带了回来
+    elif with_stability and algo != "v8":
+        stability = ra_next.deada_stability(pool, target["values"])
+    else:
+        stability = None
+
+    final = dict(final, 证据=evidence) if evidence is not None else final
+    if evidence is not None:
+        final["取严来源"] = stricter
+        final["证据调整"] = evidence_note
+
     return {
         "schema": "mfg-v8-risk-assessment.v1",
+        "算法版本": algo_version,
+        "生效开关": dict(settings.to_dict(), 取值来源=settings.sources),
         "行业": industry, "行业参数": prof,
         "受评对象": target["name"], "受评说明": target["note"],
-        "声明": DECLARATION,
+        "声明": dict(DECLARATION, 算法口径=(
+            "基线 v8：χ² 临界值 + 训练池风险数字 + 全特征森林"
+            if algo == "v8" else
+            "生产版 %s：MC 精确检验 + Holm / 固定数字自信息 / 随机子空间 / "
+            "独立校准 / 对偶最优性证书 / 证据只升不降（融合决策表未变）" % algs.VERSION
+            if algo == "v1" else
+            "RA_NEXT %s：MC 精确检验 + Holm / 固定数字自信息 / "
+            "随机子空间 + 独立校准（融合决策表未变）" % ra_next.VERSION)),
         "现金流事实": facts,
         "相对阈值": thr, "缓冲判定": buffer_judge,
         "第一层": gate, "第二层": da, "第三层": rf, "融合判定": fused, "最终等级": final,
+        "稳定性": stability,
         "压力测试": stress,
         "分级审批": appr,
         "三态跟踪": tracking_states(),

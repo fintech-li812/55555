@@ -113,10 +113,25 @@ def _normalize(value, lo=None, hi=None):
     return v
 
 
-def _q_state(Q):
+def _q_state(Q, in_fusion=True):
+    """Q 的离散状态。
+
+    ``in_fusion=False`` 是开关项（``config.quality.gate_in_fusion``）：
+    把 Q 从融合判别里摘出去，只作为数据质量报告呈现。
+    实现方式是**在输入规范化阶段把 Q 状态钉成「达标」**，
+    而不是新增规则或改动既有 48 格中的任何一格——
+    这样 R1~R10 的语义与组合数完全不变，只是 Q 维度恒定走 Q_OK 那一支，
+    等价于取决策表在 Q=Q_OK 上的子表（R3~R6、R9、R10），物理上无法分叉。
+
+    例外：Q 本身不可用（缺失/非数值/越界）时仍返回 ``Q_MISSING``（→R1 红灯）。
+    理由与「证据不足不降档」同源——第一层连数值都算不出来，
+    说明数据质量根本无法评估，此时不是「Q 退出判别」，而是「门禁失效」。
+    """
     v = _normalize(Q, 0.0, 1.0)
     if v is None:
         return Q_MISSING
+    if not in_fusion:
+        return Q_OK
     if v < Q_BAD_MAX:
         return Q_BAD
     if v < Q_OK_MIN:
@@ -263,7 +278,7 @@ def _match(states):
 # ---------------------------------------------------------------- 对外接口
 
 
-def fuse(Q, D, P, *, d_reliable=True, p_reliable=True):
+def fuse(Q, D, P, *, d_reliable=True, p_reliable=True, q_in_fusion=True):
     """三层融合判定 FUSE(Q, D, P)。
 
     参数
@@ -271,14 +286,18 @@ def fuse(Q, D, P, *, d_reliable=True, p_reliable=True):
     Q : 数据质量得分，合法区间 [0, 1]
     D : 财务健康判别得分，实数；``d_reliable=False`` 表示上游求解降级、得分不可信
     P : 舞弊概率，合法区间 [0, 1]；``p_reliable=False`` 表示随机森林未训练出树
+    q_in_fusion : ``False`` 时 Q 只作数据质量报告、不参与判别（可配置开关）
 
     返回
     ----
     dict：``等级`` / ``依据`` / ``规则ID`` / ``规则版本`` / ``公式`` /
     ``状态``（离散化后的三层状态）/ ``输入``（原值与可用性）。
+
+    ``Q参与判别`` / ``Q仅报告`` 两个字段会在返回体中标出本次是否走了开关，
+    留痕时可直接据此追溯，不需要另查配置。
     """
     states = {
-        "Q": _q_state(Q),
+        "Q": _q_state(Q, in_fusion=q_in_fusion),
         "D": _d_state(D, reliable=d_reliable),
         "P": _p_state(P, reliable=p_reliable),
     }
@@ -290,6 +309,8 @@ def fuse(Q, D, P, *, d_reliable=True, p_reliable=True):
         "规则版本": RULE_VERSION,
         "公式": RULE_TEXT,
         "状态": dict(states),
+        "Q参与判别": bool(q_in_fusion),
+        "Q仅报告": (not q_in_fusion) and states["Q"] != Q_MISSING,
         "输入": {
             "Q": Q, "D": D, "P": P,
             "D可信": bool(d_reliable), "P可信": bool(p_reliable),
