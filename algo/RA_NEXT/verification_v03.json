@@ -1,0 +1,16 @@
+{
+  "baseline_fusion_returncode": 0,
+  "windows_python": "3.12.10",
+  "linux_python": "3.14.4",
+  "same_semantic_snapshot": true,
+  "same_snapshot_sha256": true,
+  "files": {
+    "mcp-server\\program_v1\\src\\v8\\layers.py": "f05d96323730d3b273f849e0cd816b4cf3553e6d3b96f10331275859d1a8b298",
+    "mcp-server\\program_v1\\src\\v8\\fusion.py": "3e204db8ebac61c2196da65a24642533e3a6c3539595b47ccd2bfaea8efde41d",
+    "mcp-server\\program_v1\\src\\v8\\indicators.py": "a5e93fda35e03abb8685a04a00466129498303911696b952d04ddc744fb222f6",
+    "algo\\RA_NEXT\\reference.py": "6cd396735b26fe7c9a7257be27e602d984bcaafaf27d3383aaba06f0a31c723a",
+    "algo\\RA_NEXT\\certified_lp.py": "31ad441251f5f94427fae5692de90c020d765a2c2c1c52aa2f7f4eb4af0ec4bf",
+    "algo\\RA_NEXT\\decision_policy.py": "0089feb0f3c628a2d9c78831a22a045d13660ce859ed175a852357b438540c0e"
+  },
+  "note": "source hashes pin observed baseline; no runtime dependency installation"
+}

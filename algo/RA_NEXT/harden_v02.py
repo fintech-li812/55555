@@ -1,0 +1,8 @@
+from pathlib import Path
+p=Path(r'D:\CashflowRiskWorkbench\algo\RA_NEXT\reference.py')
+s=p.read_text(encoding='utf-8')
+s=s.replace("    if len(pool)<8 or {s['label'] for s in pool}!={0,1}:","    if not isinstance(pool,list) or any(not isinstance(s,dict) or type(s.get('label')) is not int or s['label'] not in (0,1) for s in pool):\n        return {'D': None, '降级': True, 'reason': 'invalid pool or labels'}\n    if not isinstance(target,dict):\n        return {'D': None, '降级': True, 'reason': 'invalid target'}\n    if len(pool)<8 or {s['label'] for s in pool}!={0,1}:")
+s=s.replace("    if not valid_values(target.get('values',target))", "    if not isinstance(target,dict) or not isinstance(pool,list) or any(not isinstance(s,dict) for s in pool):\n        return {'P':None,'树数':0,'available':False,'reason':'invalid pool or target'}\n    if not valid_values(target.get('values',target))")
+s=s.replace("    details = {}; tests = []", "    if not isinstance(pool,list) or any(not isinstance(s,dict) or not isinstance(s.get('values'),dict) for s in pool):\n        return {'Q':None,'available':False,'reason':'invalid pool structure','明细':{}}\n    details = {}; tests = []")
+s=s.replace("    n = sum(counts)\n", "    if len(counts)!=len(probabilities) or not counts or any(type(c) is not int or c<0 for c in counts) or any(not isinstance(p,(int,float)) or not math.isfinite(p) or p<=0 for p in probabilities) or abs(sum(probabilities)-1)>1e-10 or type(simulations) is not int or simulations<99:\n        raise ValueError('invalid multinomial counts, probabilities or simulations')\n    n = sum(counts)\n",1)
+p.write_text(s,encoding='utf-8')

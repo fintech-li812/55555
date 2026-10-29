@@ -1,0 +1,158 @@
+{
+  "synthetic_only": true,
+  "scenarios": {
+    "healthy": {
+      "old_P": 0.0,
+      "new": {
+        "P": 0.0,
+        "P_raw": 0.0628,
+        "P_calibrated": 0.0,
+        "树数": 60,
+        "available": true,
+        "calibration_n": 10,
+        "calibration": "held-out isotonic; small synthetic sample only",
+        "OOB_brier": 0.029099799274089188,
+        "OOB_coverage": 1.0,
+        "版本": "ra-next-0.1",
+        "class_weight": "none; natural training prevalence retained",
+        "feature_sampling": "5 of 30 per tree; random-subspace forest, not per-node RF"
+      },
+      "D": 0.868543,
+      "old_fuse": "绿灯",
+      "new_fuse": "绿灯",
+      "old_P_seconds": 0.2009849000023678,
+      "new_P_seconds": 0.04165820009075105
+    },
+    "edge": {
+      "old_P": 0.9833,
+      "new": {
+        "P": 1.0,
+        "P_raw": 0.7494,
+        "P_calibrated": 1.0,
+        "树数": 60,
+        "available": true,
+        "calibration_n": 10,
+        "calibration": "held-out isotonic; small synthetic sample only",
+        "OOB_brier": 0.029099799274089188,
+        "OOB_coverage": 1.0,
+        "版本": "ra-next-0.1",
+        "class_weight": "none; natural training prevalence retained",
+        "feature_sampling": "5 of 30 per tree; random-subspace forest, not per-node RF"
+      },
+      "D": 0.187676,
+      "old_fuse": "黄灯",
+      "new_fuse": "黄灯",
+      "old_P_seconds": 0.19919519999530166,
+      "new_P_seconds": 0.0419666999951005
+    },
+    "risk": {
+      "old_P": 1.0,
+      "new": {
+        "P": 1.0,
+        "P_raw": 0.9183,
+        "P_calibrated": 1.0,
+        "树数": 60,
+        "available": true,
+        "calibration_n": 10,
+        "calibration": "held-out isotonic; small synthetic sample only",
+        "OOB_brier": 0.029099799274089188,
+        "OOB_coverage": 1.0,
+        "版本": "ra-next-0.1",
+        "class_weight": "none; natural training prevalence retained",
+        "feature_sampling": "5 of 30 per tree; random-subspace forest, not per-node RF"
+      },
+      "D": -0.471113,
+      "old_fuse": "红灯",
+      "new_fuse": "红灯",
+      "old_P_seconds": 0.20522879995405674,
+      "new_P_seconds": 0.04212620004545897
+    }
+  },
+  "Q_new": 0.9333,
+  "Q_old": 0.5667,
+  "Q_seconds": 0.16669720003847033,
+  "independent_synthetic_test": {
+    "n": 80,
+    "seed": 814729,
+    "baseline": {
+      "brier": 0.152776958875,
+      "ece": 0.15520124999999999,
+      "reliability": [
+        {
+          "n": 26,
+          "prediction": 0.00576923076923077,
+          "observed": 0.0
+        },
+        {
+          "n": 3,
+          "prediction": 0.8832999999999999,
+          "observed": 0.0
+        },
+        {
+          "n": 51,
+          "prediction": 0.9728666666666667,
+          "observed": 0.7843137254901961
+        }
+      ]
+    },
+    "candidate": {
+      "brier": 0.2375,
+      "ece": 0.2375,
+      "reliability": [
+        {
+          "n": 21,
+          "prediction": 0.0,
+          "observed": 0.0
+        },
+        {
+          "n": 59,
+          "prediction": 1.0,
+          "observed": 0.6779661016949152
+        }
+      ]
+    }
+  },
+  "D_stability": {
+    "D_bootstrap_interval": [
+      -0.089475,
+      0.305092
+    ],
+    "weight_intervals": {
+      "X9": [
+        0.0,
+        0.170425
+      ],
+      "X7": [
+        0.0,
+        0.249482
+      ],
+      "AR_DAYS": [
+        0.074667,
+        0.575347
+      ],
+      "X13": [
+        0.0,
+        0.37152
+      ],
+      "X1": [
+        0.0,
+        0.22697
+      ],
+      "X2": [
+        0.0,
+        0.371029
+      ],
+      "X3": [
+        0.0,
+        0.29136
+      ],
+      "X6": [
+        0.0,
+        0.484217
+      ]
+    },
+    "failed": 0,
+    "repeats": 30,
+    "note": "exploratory percentile stability, not guaranteed coverage"
+  }
+}

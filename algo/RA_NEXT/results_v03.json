@@ -1,0 +1,310 @@
+{
+  "version": "ra-next-0.3",
+  "python": "3.12.10",
+  "scipy": "1.18.1",
+  "random_LP_checks": [
+    {
+      "case": 0,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 8.881784197001252e-16
+    },
+    {
+      "case": 1,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 0.0
+    },
+    {
+      "case": 2,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 0.0
+    },
+    {
+      "case": 3,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 2.220446049250313e-16
+    },
+    {
+      "case": 4,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 1.7763568394002505e-15
+    },
+    {
+      "case": 5,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 0.0
+    },
+    {
+      "case": 6,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 4.440892098500626e-16
+    },
+    {
+      "case": 7,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 1.3322676295501878e-14
+    },
+    {
+      "case": 8,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 0.0
+    },
+    {
+      "case": 9,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 0.0
+    },
+    {
+      "case": 10,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 2.6645352591003757e-15
+    },
+    {
+      "case": 11,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 8.881784197001252e-16
+    },
+    {
+      "case": 12,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 4.440892098500626e-15
+    },
+    {
+      "case": 13,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 2.220446049250313e-16
+    },
+    {
+      "case": 14,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 1.7763568394002505e-15
+    },
+    {
+      "case": 15,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 3.552713678800501e-15
+    },
+    {
+      "case": 16,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 3.552713678800501e-15
+    },
+    {
+      "case": 17,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 2.220446049250313e-16
+    },
+    {
+      "case": 18,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 0.0
+    },
+    {
+      "case": 19,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 8.881784197001252e-16
+    },
+    {
+      "case": 20,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 4.440892098500626e-15
+    },
+    {
+      "case": 21,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 0.0
+    },
+    {
+      "case": 22,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 1.7763568394002505e-15
+    },
+    {
+      "case": 23,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 4.440892098500626e-16
+    },
+    {
+      "case": 24,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 0.0
+    },
+    {
+      "case": 25,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 4.440892098500626e-16
+    },
+    {
+      "case": 26,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 0.0
+    },
+    {
+      "case": 27,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 8.881784197001252e-15
+    },
+    {
+      "case": 28,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 0.0
+    },
+    {
+      "case": 29,
+      "certified": true,
+      "oracle_success": true,
+      "objective_error": 0.0
+    }
+  ],
+  "dea_oracle": {
+    "certified": true,
+    "objective_error": 1.779909553079051e-12,
+    "objective": -21.717914834414476,
+    "highs_objective": -21.717914834412696,
+    "certificate": {
+      "optimality_verified": true,
+      "relative_primal_residual": 1.4978345599470969e-13,
+      "relative_dual_violation": 4.550071273024891e-16,
+      "relative_duality_gap": 3.997577748945258e-14,
+      "negative_variable": 0,
+      "primal_objective": -21.717914834414476,
+      "dual_objective": -21.7179148344127,
+      "tolerance": 1e-07,
+      "reason": "numerical primal-dual certificate; not exact arithmetic proof",
+      "pivots": 132,
+      "dual": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        1.0976605047561048,
+        -0.9999999999999996,
+        -1.0,
+        -1.0,
+        -0.9999999999999999,
+        -0.23092456825548524,
+        -1.0,
+        -1.0,
+        -1.0,
+        -0.9999999999999996,
+        0.7764428869411337,
+        -1.0,
+        -1.0,
+        -0.047347072289603886,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        -1.9099396426759956,
+        1.0,
+        1.000000000000001,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        -1.6858921084761374,
+        1.0,
+        1.0,
+        1.0,
+        -21.7179148344127
+      ]
+    }
+  },
+  "timing": {
+    "healthy": {
+      "baseline_median": 0.2644897000864148,
+      "candidate_warm_median": 0.2587195000378415,
+      "ratio": 0.9781836493190924
+    },
+    "edge": {
+      "baseline_median": 0.2603663000045344,
+      "candidate_warm_median": 0.25713409995660186,
+      "ratio": 0.9875859508397351
+    },
+    "risk": {
+      "baseline_median": 0.2625703999074176,
+      "candidate_warm_median": 0.2577613000757992,
+      "ratio": 0.9816845317167736
+    }
+  },
+  "cold_Q_seconds": 0.16167289996519685,
+  "threshold_demo": {
+    "enabled": true,
+    "mode": "dynamic_with_static_floor",
+    "yellow": 2.5,
+    "red": 1.5,
+    "confidence": {
+      "type": "exploratory circular 3-month block bootstrap percentile interval",
+      "intervals": {
+        "red": [
+          0.3333333333333333,
+          2.6683333333333326
+        ],
+        "yellow": [
+          0.5833333333333333,
+          2.9208333333333316
+        ]
+      },
+      "coverage_guaranteed": false,
+      "bootstrap": 199
+    },
+    "window": 12,
+    "policy": "static_floor",
+    "version": "threshold-policy-0.1",
+    "raw_quantiles": {
+      "yellow": 1.25,
+      "red": 0.7
+    },
+    "reason": "consecutive lagged history passed; static floor prevents normalization of chronic distress"
+  },
+  "unified_demo": {
+    "level": "红灯",
+    "complete": true,
+    "missing": [],
+    "components": {
+      "cross_section": "绿灯",
+      "buffer": "绿灯",
+      "temporal": "红灯"
+    },
+    "policy_version": "risk-view-0.1",
+    "reason": "maximum component severity; incomplete evidence cannot support green",
+    "probability_combined": false,
+    "business_approval": "candidate policy, not deployed"
+  },
+  "synthetic_only": true
+}

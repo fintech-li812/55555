@@ -1,0 +1,69 @@
+test_C10_reason_distinguishes_downgrade_from_grey_zone (__main__.TestBeforeAfterComparison.test_C10_reason_distinguishes_downgrade_from_grey_zone)
+C-10：同为黄灯，P<0.3（降级）与 0.3≤P<0.7（灰区）的依据必须可区分。 ... ok
+test_C2_conflict_cell_P_high_D_healthy (__main__.TestBeforeAfterComparison.test_C2_conflict_cell_P_high_D_healthy)
+C-2 的冲突格：D≥0 且 P≥0.7。 ... ok
+test_C4_grey_zone_now_has_explicit_rule (__main__.TestBeforeAfterComparison.test_C4_grey_zone_now_has_explicit_rule)
+C-4：Q∈[0.3,0.5) 且 D≥0 原靠「未完全满足绿灯条件」兜底，现为明文 R7/R8。 ... ok
+test_C5_order_dependence_is_gone (__main__.TestBeforeAfterComparison.test_C5_order_dependence_is_gone)
+C-5：旧实现的重叠格 Q<0.3 且 D<0 且 0.3≤P<0.7。 ... ok
+test_green_light_conditions_tightened_only_by_P (__main__.TestBeforeAfterComparison.test_green_light_conditions_tightened_only_by_P)
+绿灯条件仅在 P 上收紧：由「D≥0 且 Q≥0.5」变为「且 P<0.7 且 P 可用」。 ... ok
+test_red_light_conditions_unchanged (__main__.TestBeforeAfterComparison.test_red_light_conditions_unchanged)
+原红灯口径保持不变：Q<0.3，或 (D<0 且 P≥0.7)。 ... ok
+test_completeness_all_48_combinations_resolve (__main__.TestDecisionTableStructure.test_completeness_all_48_combinations_resolve)
+48 种状态组合（4×3×4）必须全部得到明确等级，不得抛异常。 ... ok
+test_coverage_counts_sum_to_48 (__main__.TestDecisionTableStructure.test_coverage_counts_sum_to_48)
+各规则覆盖的组合数之和必须等于 48 —— 不多（重叠）不少（空洞）。 ... ok
+test_mutual_exclusivity_each_combo_matches_exactly_one_rule (__main__.TestDecisionTableStructure.test_mutual_exclusivity_each_combo_matches_exactly_one_rule)
+互斥性：任一状态组合必须**恰好**命中一条规则。 ... ok
+test_no_unreachable_rule (__main__.TestDecisionTableStructure.test_no_unreachable_rule)
+决策表里不得存在永远命中不到的规则（死规则）。 ... ok
+test_order_independence (__main__.TestDecisionTableStructure.test_order_independence)
+顺序无关性：随机打乱规则书写顺序，48 种组合的判定结果必须不变。 ... ok
+test_final_level_never_lower_than_fused (__main__.TestEndToEnd.test_final_level_never_lower_than_fused)
+取严逻辑：最终等级不得低于三层融合等级（这是「取较严格者」的定义）。 ... ok
+test_independent_layers_match_full_assessment (__main__.TestEndToEnd.test_independent_layers_match_full_assessment)
+独立调用三层后融合，与整包评估路径的结果必须一致。 ... ok
+test_missing_buffer_dimension_is_disclosed (__main__.TestEndToEnd.test_missing_buffer_dimension_is_disclosed)
+C-12：缓冲维度缺失时，口径文案必须说明，不能仍宣称「两层并行取严」。 ... ok
+test_three_scenarios_produce_traceable_results (__main__.TestEndToEnd.test_three_scenarios_produce_traceable_results) ... ok
+test_boundary_values_are_accepted (__main__.TestInputValidity.test_boundary_values_are_accepted)
+合法边界 0.0 与 1.0 必须被接受（容差 1e-9 内），不得误判为不可用。 ... ok
+test_float_noise_at_upper_bound_is_tolerated (__main__.TestInputValidity.test_float_noise_at_upper_bound_is_tolerated)
+Q = 1.0000000004 这类浮点噪声应视为合法（容差 1e-9）。 ... ok
+test_integer_inputs_are_accepted (__main__.TestInputValidity.test_integer_inputs_are_accepted)
+int 是合法输入（0/1 常见于二值化的质量与概率）。 ... ok
+test_invalid_D_never_crashes_and_is_reported (__main__.TestInputValidity.test_invalid_D_never_crashes_and_is_reported)
+D 不可用 → 黄灯（第二层缺失，无法判定健康，但不等于有风险）。 ... ok
+test_invalid_P_blocks_green_light (__main__.TestInputValidity.test_invalid_P_blocks_green_light)
+P 不可用 → 证据链不完整，不允许放行绿灯（原实现会崩或误判）。 ... ok
+test_invalid_Q_never_crashes_and_is_reported (__main__.TestInputValidity.test_invalid_Q_never_crashes_and_is_reported)
+Q 不可用 → 红灯，并在返回里标注 Q 不可用（C-7：原实现 TypeError）。 ... ok
+test_out_of_range_probability_is_rejected_not_clamped (__main__.TestInputValidity.test_out_of_range_probability_is_rejected_not_clamped)
+Q/P 越界（<0 或 >1）判为不可用，而不是裁剪到边界后继续用。 ... ok
+test_legacy_rejects_invalid_while_v8_reports (__main__.TestLegacyCrossCheck.test_legacy_rejects_invalid_while_v8_reports)
+同样的非法输入：legacy 抛 ValueError，v8 返回明确等级 + 不可用标注。 ... ok
+test_two_rule_sets_agree_except_one_documented_cell (__main__.TestLegacyCrossCheck.test_two_rule_sets_agree_except_one_documented_cell)
+在合法输入网格上，两套规则应只有一格不同。 ... ok
+test_describe_rules_exportable (__main__.TestRuleDocumentation.test_describe_rules_exportable) ... ok
+test_rule_text_matches_implementation (__main__.TestRuleDocumentation.test_rule_text_matches_implementation)
+文档里的公式文本必须与实际判定一致（抽样验证，防止文案漂移）。 ... ok
+test_D_exactly_zero_is_healthy (__main__.TestThresholdBoundaries.test_D_exactly_zero_is_healthy)
+D=0 属「正常」（口径是 D<0 判风险，0 不属风险）。 ... ok
+test_P_exactly_0_3_is_mid_not_low (__main__.TestThresholdBoundaries.test_P_exactly_0_3_is_mid_not_low)
+P=0.3 归入「中」，不享有 P<0.3 的降级语义。 ... ok
+test_P_exactly_0_7_is_high (__main__.TestThresholdBoundaries.test_P_exactly_0_7_is_high)
+C-1：P=0.7 归入「高」（采用 ≥，与 2-A.7/4.0/原代码一致）。 ... ok
+test_Q_exactly_0_3_and_0_5 (__main__.TestThresholdBoundaries.test_Q_exactly_0_3_and_0_5)
+C-3：Q=0.3 属「存疑」（不再是「严重不足」），Q=0.5 属「达标」。 ... ok
+test_degraded_deada_does_not_produce_green (__main__.TestUpstreamDegradation.test_degraded_deada_does_not_produce_green)
+D 求解降级 → 不得放行绿灯，即使 Q 与 P 都很好。 ... ok
+test_legacy_three_arg_wrapper_ignores_degradation (__main__.TestUpstreamDegradation.test_legacy_three_arg_wrapper_ignores_degradation)
+记录型用例：layers.fuse 的兼容包装不感知降级，这是它必须被弃用的原因。 ... ok
+test_zero_trees_does_not_mean_no_fraud (__main__.TestUpstreamDegradation.test_zero_trees_does_not_mean_no_fraud)
+树数=0 时 P 恒为 0.0，若照旧解读成「P<0.3 排除粉饰」会严重误判。 ... ok
+
+----------------------------------------------------------------------
+Ran 33 tests in 2.880s
+
+OK

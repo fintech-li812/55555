@@ -1,0 +1,178 @@
+{
+  "synthetic_only": true,
+  "scenarios": {
+    "healthy": {
+      "old_P": 0.0,
+      "new": {
+        "P": 0.0297,
+        "P_raw": 0.0628,
+        "P_calibrated": 0.0297,
+        "树数": 60,
+        "available": true,
+        "calibration_n": 10,
+        "calibration": "held-out regularized sigmoid; small synthetic sample only",
+        "OOB_brier": 0.029099799274089188,
+        "OOB_coverage": 1.0,
+        "版本": "ra-next-0.2",
+        "class_weight": "none; natural training prevalence retained",
+        "feature_sampling": "5 of 30 per tree; random-subspace forest, not per-node RF"
+      },
+      "D": 0.868543,
+      "old_fuse": "绿灯",
+      "new_fuse": "绿灯",
+      "old_P_seconds": 0.19338090007659048,
+      "new_P_seconds": 0.052055299980565906
+    },
+    "edge": {
+      "old_P": 0.9833,
+      "new": {
+        "P": 0.8312,
+        "P_raw": 0.7494,
+        "P_calibrated": 0.8312,
+        "树数": 60,
+        "available": true,
+        "calibration_n": 10,
+        "calibration": "held-out regularized sigmoid; small synthetic sample only",
+        "OOB_brier": 0.029099799274089188,
+        "OOB_coverage": 1.0,
+        "版本": "ra-next-0.2",
+        "class_weight": "none; natural training prevalence retained",
+        "feature_sampling": "5 of 30 per tree; random-subspace forest, not per-node RF"
+      },
+      "D": 0.187676,
+      "old_fuse": "黄灯",
+      "new_fuse": "黄灯",
+      "old_P_seconds": 0.19807469996158034,
+      "new_P_seconds": 0.05148599995300174
+    },
+    "risk": {
+      "old_P": 1.0,
+      "new": {
+        "P": 0.9666,
+        "P_raw": 0.9183,
+        "P_calibrated": 0.9666,
+        "树数": 60,
+        "available": true,
+        "calibration_n": 10,
+        "calibration": "held-out regularized sigmoid; small synthetic sample only",
+        "OOB_brier": 0.029099799274089188,
+        "OOB_coverage": 1.0,
+        "版本": "ra-next-0.2",
+        "class_weight": "none; natural training prevalence retained",
+        "feature_sampling": "5 of 30 per tree; random-subspace forest, not per-node RF"
+      },
+      "D": -0.471113,
+      "old_fuse": "红灯",
+      "new_fuse": "红灯",
+      "old_P_seconds": 0.18630459997802973,
+      "new_P_seconds": 0.05210169998463243
+    }
+  },
+  "Q_new": 0.9333,
+  "Q_old": 0.5667,
+  "Q_seconds": 0.13471160002518445,
+  "independent_synthetic_test": {
+    "n": 80,
+    "seed": 914731,
+    "baseline": {
+      "brier": 0.1209723895,
+      "ece": 0.12436999999999994,
+      "reliability": [
+        {
+          "n": 29,
+          "prediction": 0.014365517241379312,
+          "observed": 0.0
+        },
+        {
+          "n": 2,
+          "prediction": 0.8833,
+          "observed": 0.0
+        },
+        {
+          "n": 49,
+          "prediction": 0.9748244897959183,
+          "observed": 0.8163265306122449
+        }
+      ]
+    },
+    "candidate": {
+      "brier": 0.01296262075,
+      "ece": 0.09018750000000002,
+      "reliability": [
+        {
+          "n": 22,
+          "prediction": 0.045445454545454546,
+          "observed": 0.0
+        },
+        {
+          "n": 13,
+          "prediction": 0.14475384615384615,
+          "observed": 0.0
+        },
+        {
+          "n": 4,
+          "prediction": 0.22905,
+          "observed": 0.0
+        },
+        {
+          "n": 1,
+          "prediction": 0.4098,
+          "observed": 0.0
+        },
+        {
+          "n": 13,
+          "prediction": 0.8634230769230768,
+          "observed": 1.0
+        },
+        {
+          "n": 27,
+          "prediction": 0.954374074074074,
+          "observed": 1.0
+        }
+      ]
+    }
+  },
+  "D_stability": {
+    "D_bootstrap_interval": [
+      -0.089475,
+      0.305092
+    ],
+    "weight_intervals": {
+      "X9": [
+        0.0,
+        0.170425
+      ],
+      "X7": [
+        0.0,
+        0.249482
+      ],
+      "AR_DAYS": [
+        0.074667,
+        0.575347
+      ],
+      "X13": [
+        0.0,
+        0.37152
+      ],
+      "X1": [
+        0.0,
+        0.22697
+      ],
+      "X2": [
+        0.0,
+        0.371029
+      ],
+      "X3": [
+        0.0,
+        0.29136
+      ],
+      "X6": [
+        0.0,
+        0.484217
+      ]
+    },
+    "failed": 0,
+    "repeats": 30,
+    "note": "exploratory percentile stability, not guaranteed coverage"
+  }
+}
