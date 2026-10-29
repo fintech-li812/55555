@@ -18,6 +18,7 @@
 # 用法（Git Bash，在本项目任意位置执行）：
 #   bash scripts/push_to_github.sh              # 交互式，推送前确认
 #   DRY_RUN=1 bash scripts/push_to_github.sh    # 只显示将要发生的变更，不推送
+#   AUTO_CONFIRM=1 bash scripts/push_to_github.sh  # 跳过确认（自动化用）
 #
 # 仓库若改名，同步修改下面的 REPO_URL 即可。
 # =============================================================================
@@ -33,6 +34,20 @@ LOCAL_W="$(cd "$LOCAL" && pwd -W)"
 # 深层路径的 checkout 失败，mktemp 生成的长路径会把路径顶爆。
 TMP="${SYNC_TMP:-$(dirname "$LOCAL_W")/_gh_sync}"
 DRY_RUN="${DRY_RUN:-0}"
+AUTO_CONFIRM="${AUTO_CONFIRM:-0}"
+
+# 列出工作区变更文件的规范做法：
+#   - core.quotepath=false：否则中文文件名会被 git 转义成 "docs/\350\264\242..."，
+#     带引号交给 git add 会直接 fatal，文件被静默漏掉；
+#   - sed 去掉 3 个字符的状态前缀；
+#   - -uall（= --untracked-files=all）：默认 git 会把整个未跟踪目录折叠成
+#     一条 "?? algo/"。折叠后既无法按文件分组（algo/ 会整个落到兜底的 chore），
+#     也无法核对「本组应暂存数 vs 实际暂存数」（1 个条目 vs 43 个文件）。
+#   - 重命名行 "R  old -> new" 只取新路径。
+list_pending() {
+  git -c core.quotepath=false status --porcelain -uall | sed 's/^...//' \
+    | sed 's/ -> .*$//' | sort -u
+}
 
 log()  { printf '\033[1;34m[push]\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m[ ok ]\033[0m %s\n' "$*"; }
@@ -128,10 +143,10 @@ if [ "$TOTAL" -eq 0 ]; then
   exit 0
 fi
 
-if [ "$DELETED" -gt 0 ]; then
+if [ "$DELETED" -gt 0 ] && [ "$AUTO_CONFIRM" != "1" ]; then
   echo ""
   err "检测到 $DELETED 个待删除文件。删除会同步到公开仓库，请确认这是有意为之："
-  git status --porcelain | grep '^D ' | head -10
+  git -c core.quotepath=false status --porcelain -uall | grep '^D ' | head -10
   printf '确认要删除这些文件？[y/N] '
   read -r CONFIRM_DEL
   [ "$CONFIRM_DEL" = "y" ] || [ "$CONFIRM_DEL" = "Y" ] || die "已取消"
@@ -139,7 +154,7 @@ fi
 
 echo ""
 log "变更清单："
-git status --porcelain | sed 's/^...//' | head -40
+list_pending | head -40
 [ "$TOTAL" -gt 40 ] && echo "  ...（还有 $((TOTAL - 40)) 个）"
 echo ""
 
@@ -148,14 +163,79 @@ if [ "$DRY_RUN" = "1" ]; then
   exit 0
 fi
 
-printf '确认推送到公开仓库？[y/N] '
-read -r CONFIRM
-[ "$CONFIRM" = "y" ] || [ "$CONFIRM" = "Y" ] || die "已取消"
+if [ "$AUTO_CONFIRM" != "1" ]; then
+  printf '确认推送到公开仓库？[y/N] '
+  read -r CONFIRM
+  [ "$CONFIRM" = "y" ] || [ "$CONFIRM" = "Y" ] || die "已取消"
+fi
 
-# ---- 5. 提交并推送 ----------------------------------------------------------
-log "提交..."
-git commit -q -m "Sync project updates from local workbench ($(date +%Y-%m-%d))" \
-  || die "提交失败"
+# ---- 5. 按文件归属分组提交 --------------------------------------------------
+# 为什么要分组而不是打成一个大提交：
+# 远端拿到的是扁平的文件快照，如果只提交一次，
+# 「改了哪个模块、为什么改」就全丢在一条消息里，事后无法按模块回溯。
+# 这里按路径归属拆成若干语义化提交，让公开仓库的历史也具备可读性。
+commit_group() {           # commit_group <前缀> <一句话主题> <路径模式...>
+  local prefix="$1"; shift
+  local subject="$1"; shift
+  local pat files=""
+  for pat in "$@"; do
+    local hit
+    # 动态正则里 "\." 会被 awk 当成转义警告，统一写成 "[.]" 更干净；
+    # 路径里含空格时 substr 会截断，这里用 sed 剥离前 3 个状态字符。
+    hit="$(list_pending | awk -v p="$pat" '$0 ~ p')"
+    [ -n "$hit" ] && files="$files
+$hit"
+  done
+  files="$(printf '%s' "$files" | sed '/^$/d' | sort -u)"
+  [ -z "$files" ] && return 0
+  # 关键：必须先 reset 再按组 add。
+  # 前面统计数量时已经 git add -A 暂存了全部文件，而 git commit 不带路径
+  # 会把暂存区一并提交——那样第一个分组就会把 70 个文件全带走，
+  # 后面各组只能提交到空气。
+  git reset -q
+  printf '%s\n' "$files" | while IFS= read -r f; do
+    git add -A -- "$f" || die "暂存失败（$prefix）：$f"
+  done
+  # 管道里的 while 在子 shell 里跑，die 的退出码带不回来。
+  # 所以必须单独校验「暂存了多少」与「本组有多少」一致，
+  # 否则某个文件 add 失败只会打一条 fatal，其余文件照样被提交，
+  # 那个文件就静默丢了——而且下次同步还会再报一遍，看起来像幽灵变更。
+  WANT="$(printf '%s\n' "$files" | wc -l)"
+  STAGED="$(git diff --cached --name-only | wc -l)"
+  [ "$STAGED" -eq "$WANT" ] \
+    || die "分组 $prefix 只暂存了 $STAGED/$WANT 个文件，已中止"
+  git commit -q -m "$prefix: $subject" -m "$(printf '%s\n' "$files" | sed 's/^/  /')" \
+    || die "提交失败（$prefix）"
+  ok "$(printf '%s\n' "$files" | wc -l) 个文件 → $prefix: $subject"
+}
+
+log "分组提交..."
+PENDING_BEFORE="$(list_pending | wc -l)"
+commit_group "feat(algorithm)" "v8 生产算法包 v1.0：训练/打分分离 + 对偶证书 + 证据只升不降" \
+  '^mcp-server/program_v1/src/v8/algorithm/' '^mcp-server/program_v1/src/v8/ra_next[.]py$'
+commit_group "feat(config)" "算法开关化：四级覆盖 + Q 参与融合判别可配 + /api/v8/config" \
+  '^mcp-server/program_v1/src/v8/config[.]py$' '^mcp-server/program_v1/src/v8/fusion[.]py$' \
+  '^mcp-server/program_v1/src/v8/engine[.]py$' '^mcp-server/program_v1/src/v8_server[.]py$' \
+  '^deploy/algorithm[.]config[.]json$' '^deploy/env[.]template$'
+commit_group "test" "算法包与开关的回归测试" '^mcp-server/program_v1/tests/'
+commit_group "feat(web)" "统一工作台：算法与开关选择器 + 生效口径回显" '^web/'
+commit_group "docs" "算法生产化审查、v0.3 评审、接入记录、开关说明与方案总结" \
+  '^docs/' '^README[.]md$' '^ROADMAP[.]md$' '^TODO[.]md$' '^task[.]md$'
+commit_group "chore(deploy)" "部署脚本与环境模板" '^deploy/' '^scripts/'
+commit_group "chore(algo)" "ra-next 研究目录产出（不参与生产链路）" '^algo/'
+# 兜底：任何没被上面认领的文件也一并提交，避免漏文件导致下次重复出现
+REMAIN="$(list_pending)"
+if [ -n "$REMAIN" ]; then
+  commit_group "chore" "其他更新" '.'
+fi
+# 提交后必须一个不剩：少提交会静默丢文件，多提交说明分组逻辑有洞
+LEFT="$(list_pending | wc -l)"
+if [ "$LEFT" -ne 0 ]; then
+  err "仍有 $LEFT 个文件未提交，请检查分组规则"
+  list_pending | head -10
+  die "分组提交不完整，已中止推送"
+fi
+ok "$PENDING_BEFORE 项变更全部归入分组提交"
 
 log "推送到 $BRANCH ..."
 git push origin "$BRANCH" || die "推送失败"
