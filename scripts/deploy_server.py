@@ -49,6 +49,7 @@ FILES = [
     "mcp-server/program_v1/src/v8/algorithm/model.py",
     "mcp-server/program_v1/src/v8/algorithm/__init__.py",
     "web/统一工作台.html",
+    "docs/operations/算法开关说明.md",
     "deploy/algorithm.config.json",
     "deploy/env.template",
     "deploy/ssh_run.py",
