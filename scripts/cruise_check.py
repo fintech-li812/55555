@@ -124,14 +124,29 @@ def check_switch_matrix(h):
         for e in ("", "&evidence=loose"):
             for b in ("", "&benford=1", "&benford=0"):
                 combos.append(q + e + b)
+    # algo 维度必须覆盖默认算法 v8，而不止 v1：曾经 q_in_fusion 只在 v1 分支
+    # 传给了 fuse，v8 分支静默走默认 True，但这段矩阵当时只跑 algo=v1，
+    # 于是缺陷一路漏到生产。
     for qs in combos:
         for sc in ("healthy", "risk"):
-            code, d = h.get_json("/api/v8/assess?scenario=%s&algo=v1%s" % (sc, qs))
-            if code != 200:
-                note("FAIL", "开关组合 %s/%s" % (qs, sc), "HTTP %s" % code)
-                continue
-            if "生效开关" not in d:
-                note("FAIL", "开关组合 %s/%s" % (qs, sc), "缺少生效开关回显")
+            for algo in ("v8", "v1"):
+                code, d = h.get_json(
+                    "/api/v8/assess?scenario=%s&algo=%s%s" % (sc, algo, qs))
+                if code != 200:
+                    note("FAIL", "开关组合 %s/%s/%s" % (qs, sc, algo), "HTTP %s" % code)
+                    continue
+                if "生效开关" not in d:
+                    note("FAIL", "开关组合 %s/%s/%s" % (qs, sc, algo), "缺少生效开关回显")
+                    continue
+                # 一致性断言：报告的开关值必须与融合内部的实际取值一致。
+                # 只比对「生效开关」回显是不够的——回显取自配置对象，
+                # 即使调用钩子漏传参数，回显也照样是对的。
+                want = "q_in_fusion=0" in qs
+                got = (d.get("融合判定") or {}).get("Q参与判别")
+                if got is not (not want):
+                    note("FAIL", "开关回显与实际不一致 %s/%s" % (qs, algo),
+                         "生效开关称 Q%s参与判别，融合内部却是 Q%s参与"
+                         % ("不" if want else "", "参与" if got else "未参与"))
     # 关键语义：benford=0 必须导致 Q 不进融合 → 红灯
     code, d = h.get_json("/api/v8/assess?scenario=healthy&algo=v1&benford=0")
     if code == 200 and d["最终等级"]["等级"] != "红灯":
